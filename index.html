@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Word Wheel - New Deployment</title>
+    <style>
+        :root {
+            --black: #000000; --white: #ffffff; --purple: #3d1f6e;
+            --orange: #f2631a; --blue: #54baf7; --yellow: #ffd447;
+            --grey: #eee; --green: #9CFC97;
+        }
+
+        /* --- THE SCROLL FIX --- */
+        html, body {
+            margin: 0; padding: 0;
+            width: 100%;
+            background-color: var(--orange);
+            /* Standard scrolling behavior */
+            overflow-y: auto; 
+            overflow-x: hidden;
+            height: auto;
+            min-height: 100%;
+        }
+
+        /* High-Visibility Scrollbar */
+        body::-webkit-scrollbar { width: 15px; }
+        body::-webkit-scrollbar-track { background: var(--orange); }
+        body::-webkit-scrollbar-thumb { background: var(--purple); border: 3px solid var(--orange); border-radius: 10px; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 15px 100px 15px; /* Extra bottom padding for mobile browsers */
+        }
+
+        .game-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 30px;
+            border: 5px solid var(--black);
+            box-shadow: 12px 12px 0px var(--black);
+            width: 100%;
+            max-width: 480px;
+            text-align: center;
+        }
+
+        /* --- THE TITLE FIX: FORCED OVER/UNDER --- */
+        .title-block {
+            margin-bottom: 30px;
+        }
+        .title-word {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 10px; /* Space between words */
+        }
+        .letter {
+            font-size: clamp(2.2rem, 10vw, 3.5rem);
+            font-weight: 900;
+            color: var(--purple);
+            text-shadow: 2px 2px 0 var(--yellow), 4px 4px 0 var(--black);
+        }
+
+        /* --- GAME ELEMENTS --- */
+        #game-area { display: none; }
+        .stats { display: flex; justify-content: space-between; font-weight: 900; margin-bottom: 20px; color: var(--purple); }
+        
+        .wheel-box {
+            display: flex; justify-content: center; gap: 8px; 
+            height: 240px; overflow: hidden; background: #fdfdfd;
+            border-radius: 20px; border: 3px solid var(--black);
+            margin-bottom: 20px;
+        }
+        .column { display: flex; flex-direction: column; gap: 10px; }
+        .cell {
+            width: 55px; height: 60px; border: 2px solid var(--black);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; font-weight: 900; background: white; border-radius: 10px;
+        }
+
+        .btn-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .game-btn {
+            flex: 1; padding: 15px; border-radius: 15px; border: 3px solid var(--black);
+            font-weight: 900; cursor: pointer; text-transform: uppercase;
+            box-shadow: 0 5px 0 var(--black); position: relative;
+        }
+        .game-btn:active { top: 3px; box-shadow: 0 2px 0 var(--black); }
+
+        #submit { background: var(--blue); color: white; }
+        #new-game { background: var(--purple); color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="game-card">
+        <div id="splash">
+            <div class="title-block">
+                <div class="title-word">
+                    <span class="letter">W</span><span class="letter">O</span><span class="letter">R</span><span class="letter">D</span>
+                </div>
+                <div class="title-word">
+                    <span class="letter">W</span><span class="letter">H</span><span class="letter">E</span><span class="letter">E</span><span class="letter">L</span>
+                </div>
+            </div>
+            <button class="game-btn" style="background:var(--yellow); width: 100%; font-size: 1.5rem;" onclick="start()">PLAY NOW</button>
+        </div>
+
+        <div id="game-area">
+            <div class="stats">
+                <span>STREAK: <span id="streak">0</span></span>
+                <span>TIME: <span id="timer">0:00</span></span>
+            </div>
+
+            <div class="wheel-box" id="display"></div>
+
+            <div class="btn-row" id="up-btns"></div>
+            <div class="btn-row" id="down-btns"></div>
+
+            <div class="button-stack" style="margin-top:20px;">
+                <div class="btn-row">
+                    <button id="submit" class="game-btn" onclick="check()">SUBMIT</button>
+                    <button class="game-btn" style="background:var(--orange); color:white;" onclick="shuffle()">SHUFFLE</button>
+                </div>
+                <button id="new-game" class="game-btn" onclick="reset()">NEW GAME</button>
+            </div>
+            <div id="msg" style="margin-top:15px; font-weight:900;"></div>
+        </div>
+    </div>
+
+<script>
+    let wheels = [], targets = ["CAKE", "FIRE"], streak = 0, seconds = 0;
+    let timer;
+
+    function start() {
+        document.getElementById('splash').style.display = 'none';
+        document.getElementById('game-area').style.display = 'block';
+        reset();
+    }
+
+    function reset() {
+        wheels = []; seconds = 0;
+        document.getElementById('msg').innerText = "";
+        const display = document.getElementById('display');
+        const up = document.getElementById('up-btns');
+        const down = document.getElementById('down-btns');
+        display.innerHTML = up.innerHTML = down.innerHTML = "";
+
+        for(let i=0; i<4; i++) {
+            wheels[i] = [targets[0][i], targets[1][i], 'X', 'Y', 'Z', 'W'];
+            
+            const col = document.createElement('div'); col.className = 'column'; col.id = `c${i}`;
+            display.appendChild(col);
+
+            const ub = document.createElement('button'); ub.className = 'game-btn'; ub.innerText = '▲';
+            ub.style.background = "var(--grey)"; ub.onclick = () => spin(i, -1);
+            up.appendChild(ub);
+
+            const db = document.createElement('button'); db.className = 'game-btn'; db.innerText = '▼';
+            db.style.background = "var(--grey)"; db.onclick = () => spin(i, 1);
+            down.appendChild(db);
+
+            draw(i);
+        }
+        clearInterval(timer);
+        timer = setInterval(() => {
+            seconds++;
+            document.getElementById('timer').innerText = `${Math.floor(seconds/60)}:${(seconds%60).toString().padStart(2,'0')}`;
+        }, 1000);
+    }
+
+    function draw(i) {
+        const col = document.getElementById(`c${i}`);
+        col.innerHTML = "";
+        [5, 0, 1, 2].forEach(idx => {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.innerText = wheels[i][idx % 6];
+            col.appendChild(cell);
+        });
+    }
+
+    function spin(i, dir) {
+        if(dir === 1) wheels[i].unshift(wheels[i].pop());
+        else wheels[i].push(wheels[i].shift());
+        draw(i);
+    }
+
+    function check() {
+        let w1 = "", w2 = "";
+        for(let i=0; i<4; i++) { w1 += wheels[i][0]; w2 += wheels[i][1]; }
+        if(w1 === targets[0] && w2 === targets[1]) {
+            document.getElementById('msg').innerText = "UNLOCKED!";
+            streak++; document.getElementById('streak').innerText = streak;
+            clearInterval(timer);
+        } else {
+            document.getElementById('msg').innerText = "STILL LOCKED...";
+        }
+    }
+
+    function shuffle() {
+        for(let i=0; i<4; i++) {
+            let r = Math.floor(Math.random() * 6);
+            for(let j=0; j<r; j++) spin(i, 1);
+        }
+    }
+</script>
+</body>
+</html>
