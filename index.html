@@ -19,10 +19,9 @@
             display: flex; flex-direction: column; align-items: center; min-height: 100vh;
         }
 
-        /* --- STATUS BAR --- */
         .status-bar {
             display: flex; justify-content: space-between; align-items: center;
-            width: 100%; max-width: 450px; margin-bottom: 15px; gap: 5px;
+            width: 100%; max-width: 450px; margin-bottom: 10px; gap: 5px;
         }
         .status-item {
             background: var(--white); border: 2px solid var(--black);
@@ -30,6 +29,14 @@
             font-size: 0.75rem; box-shadow: 0 3px 0 var(--black);
             flex: 1; text-align: center;
         }
+
+        /* --- HIGH SCORE TABLE --- */
+        #leaderboard-container {
+            width: 100%; max-width: 450px; background: rgba(255,255,255,0.2);
+            border-radius: 15px; padding: 10px; margin-bottom: 10px; color: var(--purple);
+        }
+        .score-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; font-weight: bold; }
+        .score-table th { text-align: left; border-bottom: 1px solid var(--purple); padding-bottom: 3px; }
 
         .game-card {
             background: var(--white); width: 100%; max-width: 450px;
@@ -48,7 +55,6 @@
         .lvl-step { color: #ccc; transition: 0.3s; }
         .lvl-step.active { color: var(--purple); transform: scale(1.2); text-decoration: underline; }
 
-        /* --- WHEELS --- */
         .game-grid { display: flex; justify-content: center; gap: 8px; margin: 20px 0; }
         .column-group { display: flex; flex-direction: column; align-items: center; gap: 10px; }
         
@@ -98,7 +104,8 @@
         #msg-box { min-height: 55px; margin: 10px 0; font-weight: 800; color: var(--purple); font-size: 0.9rem; display: flex; align-items: center; justify-content: center; }
         .hidden { display: none !important; }
         
-        .victory-text { font-size: 1.5rem; line-height: 1.3; color: var(--purple); margin: 20px 0; font-weight: 900; }
+        .victory-text { font-size: 1.3rem; line-height: 1.3; color: var(--purple); margin: 20px 0; font-weight: 900; }
+        .final-score { font-size: 1.1rem; color: var(--blue); margin-bottom: 20px; font-weight: 800; }
     </style>
 </head>
 <body>
@@ -108,6 +115,13 @@
         <div class="status-item">TIME: <span id="stat-time">0:00</span></div>
         <div id="sound-toggle" class="status-item" style="cursor:pointer" onclick="toggleSound()">SND: ON</div>
         <div class="status-item">STREAK: <span id="stat-streak">0</span></div>
+    </div>
+
+    <div id="leaderboard-container" class="hidden">
+        <table class="score-table" id="high-score-list">
+            <thead><tr><th>Rank</th><th>Word Wheel High Scores</th><th>Time</th></tr></thead>
+            <tbody></tbody>
+        </table>
     </div>
 
     <div class="game-card">
@@ -137,6 +151,7 @@
             </div>
             <div id="victory-ui" class="hidden">
                 <p class="victory-text">CONGRATULATIONS!<br>YOU ARE THE WORD WHEEL MASTER!</p>
+                <p class="final-score" id="finish-time-display"></p>
                 <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple);" onclick="location.reload()">PLAY AGAIN</button>
             </div>
         </div>
@@ -151,7 +166,7 @@
     };
 
     let audioCtx, targets = [], wheels = [], offsets = [];
-    let wordLen = 3, currentLevelIndex = 1, streak = 0;
+    let wordLen = 3, currentLevelIndex = 1, streak = 0, finalTimeFormatted = "";
     let soundEnabled = true, startTime, timerInterval;
 
     function toggleSound() {
@@ -159,13 +174,18 @@
         document.getElementById('sound-toggle').innerText = `SND: ${soundEnabled ? 'ON' : 'OFF'}`;
     }
 
+    function formatTime(ms) {
+        const totalSecs = Math.floor(ms / 1000);
+        const mins = Math.floor(totalSecs / 60);
+        const secs = (totalSecs % 60).toString().padStart(2, '0');
+        return `${mins}:${secs}`;
+    }
+
     function startTimer() {
         startTime = Date.now();
         timerInterval = setInterval(() => {
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const mins = Math.floor(elapsed / 60);
-            const secs = (elapsed % 60).toString().padStart(2, '0');
-            document.getElementById('stat-time').innerText = `${mins}:${secs}`;
+            const elapsed = Date.now() - startTime;
+            document.getElementById('stat-time').innerText = formatTime(elapsed);
         }, 1000);
     }
 
@@ -187,18 +207,51 @@
                 o.connect(g); g.connect(audioCtx.destination); 
                 o.start(audioCtx.currentTime + (i * 0.1)); o.stop(audioCtx.currentTime + (i * 0.1) + 0.4); 
             }); 
+        } else if (type === 'victory') {
+            const notes = [523, 523, 523, 659, 783, 1046, 783, 1046];
+            notes.forEach((f, i) => {
+                const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+                o.type = 'square'; o.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.15));
+                g.gain.setValueAtTime(0.1, audioCtx.currentTime + (i * 0.15));
+                g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + (i * 0.15) + 0.14);
+                o.connect(g); g.connect(audioCtx.destination);
+                o.start(audioCtx.currentTime + (i * 0.15)); o.stop(audioCtx.currentTime + (i * 0.15) + 0.15);
+            });
         }
         osc.connect(gain); gain.connect(audioCtx.destination);
+    }
+
+    function updateLeaderboard() {
+        const scores = JSON.parse(localStorage.getItem('wordWheelScores') || '[]');
+        const tbody = document.querySelector('#high-score-list tbody');
+        tbody.innerHTML = '';
+        scores.slice(0, 5).forEach((s, i) => {
+            const row = `<tr><td>#${i+1}</td><td>Player</td><td>${formatTime(s)}</td></tr>`;
+            tbody.innerHTML += row;
+        });
+        if(scores.length > 0) document.getElementById('leaderboard-container').classList.remove('hidden');
+    }
+
+    function saveScore(ms) {
+        let scores = JSON.parse(localStorage.getItem('wordWheelScores') || '[]');
+        scores.push(ms);
+        scores.sort((a, b) => a - b);
+        localStorage.setItem('wordWheelScores', JSON.stringify(scores));
     }
 
     function initTitle() {
         const c1 = document.getElementById('title-1'), c2 = document.getElementById('title-2');
         [..."WORD"].forEach((l, i) => c1.innerHTML += `<span class="title-letter" style="animation-delay:${i*0.1}s">${l}</span>`);
         [..."WHEEL"].forEach((l, i) => c2.innerHTML += `<span class="title-letter" style="animation-delay:${(i+4)*0.1}s">${l}</span>`);
+        updateLeaderboard();
     }
     initTitle();
 
-    function initGame() { playSound('spin'); document.getElementById('splash').classList.add('hidden'); startTimer(); loadLevel(); }
+    function initGame() { 
+        playSound('spin'); 
+        document.getElementById('splash').classList.add('hidden'); 
+        startTimer(); loadLevel(); 
+    }
 
     function loadLevel() {
         const lenMap = {1: 3, 2: 4, 3: 5, 4: 6};
@@ -208,20 +261,11 @@
         let w2 = list[Math.floor(Math.random()*list.length)];
         while(w1 === w2) w2 = list[Math.floor(Math.random()*list.length)];
         targets = [w1, w2];
-
         document.getElementById('stat-lvl').innerText = currentLevelIndex;
         document.getElementById('stat-streak').innerText = streak;
         document.querySelectorAll('.lvl-step').forEach(s => s.classList.remove('active'));
         document.getElementById(`lvl-step-${currentLevelIndex}`).classList.add('active');
-        
-        document.getElementById('secondary-btns').classList.remove('hidden');
-        document.getElementById('btn-reveal-action').classList.remove('hidden');
-        document.getElementById('btn-main-action').innerText = "SUBMIT";
-        document.getElementById('btn-main-action').onclick = checkSolution;
         document.getElementById('game-area').classList.remove('hidden');
-        document.getElementById('msg-box').innerText = "Find the hidden words!";
-        document.getElementById('msg-box').style.color = "var(--purple)";
-
         buildWheels();
     }
 
@@ -294,8 +338,12 @@
                 if(currentLevelIndex < 4) { currentLevelIndex++; loadLevel(); } 
                 else { 
                     clearInterval(timerInterval);
+                    const elapsed = Date.now() - startTime;
+                    saveScore(elapsed);
+                    document.getElementById('finish-time-display').innerText = `YOU COMPLETED THE WORD WHEEL IN ${formatTime(elapsed)}`;
                     document.getElementById('main-ui').classList.add('hidden');
                     document.getElementById('victory-ui').classList.remove('hidden');
+                    playSound('victory');
                 }
             }, 1800);
         } else {
@@ -305,6 +353,7 @@
     }
 
     function giveClue() {
+        startTime -= 10000; // Add 10 seconds penalty
         const col = Math.floor(Math.random() * wordLen);
         const oldOffset = offsets[col];
         offsets[col] = 8; 
@@ -312,11 +361,15 @@
         const cells = document.getElementById(`strip-${col}`).children;
         cells[8].classList.add('clue-flash'); cells[9].classList.add('clue-flash');
         
+        const msg = document.getElementById('msg-box');
+        msg.innerText = "+10 SECOND PENALTY!"; msg.style.color = "red";
+
         setTimeout(() => {
             cells[8].classList.remove('clue-flash'); cells[9].classList.remove('clue-flash');
             offsets[col] = oldOffset;
             updateStrip(col, true);
-        }, 4000);
+            msg.innerText = "Find the hidden words!"; msg.style.color = "var(--purple)";
+        }, 2000);
     }
 
     function reveal() {
@@ -332,7 +385,7 @@
                 document.getElementById('secondary-btns').classList.add('hidden');
                 document.getElementById('btn-reveal-action').classList.add('hidden');
                 document.getElementById('btn-main-action').innerText = "PLAY AGAIN";
-                document.getElementById('btn-main-action').onclick = () => { streak = 0; currentLevelIndex = 1; document.getElementById('stat-time').innerText = "0:00"; startTimer(); loadLevel(); };
+                document.getElementById('btn-main-action').onclick = () => location.reload();
             }
         }, 50);
     }
