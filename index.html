@@ -26,7 +26,6 @@
             position: relative;
         }
 
-        /* --- TITLE --- */
         .title-letter {
             font-size: 2.8rem; font-weight: 900; color: var(--purple);
             text-shadow: 3px 3px 0 var(--yellow); display: inline-block;
@@ -36,6 +35,18 @@
             0% { opacity: 0; transform: scale(0.3) translateY(-100px); }
             100% { opacity: 1; transform: scale(1) translateY(0); }
         }
+
+        /* --- LEVEL UP OVERLAY --- */
+        #level-up-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(61, 31, 110, 0.95); z-index: 100;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border-radius: 30px; color: var(--yellow); visibility: hidden; opacity: 0;
+            transition: 0.4s;
+        }
+        #level-up-screen.show { visibility: visible; opacity: 1; }
+        .lvl-up-text { font-size: 3rem; font-weight: 900; margin: 0; animation: pulse 0.5s infinite alternate; }
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
 
         /* --- WHEELS --- */
         .game-grid { display: flex; justify-content: center; gap: 8px; margin: 20px 0; }
@@ -54,25 +65,13 @@
             position: relative;
         }
 
-        /* --- SPARKLE EFFECT --- */
         .letter-cell.correct { 
             background: var(--green) !important; 
             animation: sparklePulse 0.4s ease infinite alternate;
         }
-        .letter-cell.correct::after {
-            content: '✨';
-            position: absolute;
-            font-size: 1.2rem;
-            animation: floatSparkle 0.6s ease-out forwards;
-        }
         @keyframes sparklePulse {
             from { box-shadow: inset 0 0 0px var(--yellow); }
-            to { box-shadow: inset 0 0 15px var(--yellow); transform: scale(1.05); }
-        }
-        @keyframes floatSparkle {
-            0% { opacity: 0; transform: translate(0,0) scale(0.5); }
-            50% { opacity: 1; }
-            100% { opacity: 0; transform: translate(10px, -20px) scale(1.2); }
+            to { box-shadow: inset 0 0 15px var(--yellow); transform: scale(1.02); }
         }
 
         /* --- BUTTONS --- */
@@ -115,6 +114,11 @@
 <body>
 
     <div class="game-card">
+        <div id="level-up-screen">
+            <p class="lvl-up-text">LEVEL UP!</p>
+            <p id="lvl-up-desc" style="font-weight: bold; margin-top: 10px;">More letters incoming...</p>
+        </div>
+
         <div id="splash">
             <div id="title-1"></div><div id="title-2"></div>
             <p style="color: var(--purple); font-weight: bold; margin-top: 15px;">Spin the Word Wheel and find the words!</p>
@@ -143,41 +147,18 @@
 
 <script>
     const commonWords = {
-        3: [
-            {w: "CAT", d: "A small furry pet that meows"}, {w: "DOG", d: "Man's best friend that barks"},
-            {w: "SUN", d: "The big yellow star in the sky"}, {w: "BOX", d: "Something used to hold or ship items"},
-            {w: "SKY", d: "Where the clouds and birds are"}, {w: "PEN", d: "A tool used for writing with ink"},
-            {w: "CUP", d: "Something you drink water or tea from"}, {w: "BAT", d: "Used in baseball or flies at night"},
-            {w: "HAT", d: "Something you wear on your head"}, {w: "ICE", d: "Frozen water used to cool drinks"}
-        ],
-        4: [
-            {w: "BLUE", d: "The color of the ocean or sky"}, {w: "FISH", d: "An animal that swims in water"},
-            {w: "WIND", d: "Moving air that blows the trees"}, {w: "RAIN", d: "Water falling from the clouds"},
-            {w: "FIRE", d: "Something hot that produces smoke"}, {w: "SNOW", d: "Cold white flakes in winter"},
-            {w: "MOON", d: "The glowing object in the night sky"}, {w: "STAR", d: "A tiny twinkling light in space"},
-            {w: "TREE", d: "A tall plant with leaves and a trunk"}, {w: "BIRD", d: "An animal with wings that flies"}
-        ],
-        5: [
-            {w: "APPLE", d: "A round red or green fruit"}, {w: "BREAD", d: "Food used to make sandwiches"},
-            {w: "WATER", d: "Clear liquid we need to drink"}, {w: "HOUSE", d: "A building where people live"},
-            {w: "MUSIC", d: "Sounds played on instruments"}, {w: "CLOCK", d: "A device that tells the time"},
-            {w: "TABLE", d: "Furniture used for eating or working"}, {w: "HEART", d: "The part of the body that pumps blood"},
-            {w: "PIANO", d: "A musical instrument with black and white keys"}, {w: "SMILE", d: "What you do when you are happy"}
-        ],
-        6: [
-            {w: "ORANGE", d: "A citrus fruit or a bright color"}, {w: "BOTTLE", d: "A container for holding liquids"},
-            {w: "WINDOW", d: "A glass opening in a wall"}, {w: "COFFEE", d: "A dark morning drink with caffeine"},
-            {w: "PLANET", d: "A large object like Earth or Mars"}, {w: "FLOWER", d: "A colorful part of a plant"},
-            {w: "GARDEN", d: "A place where flowers and veggies grow"}, {w: "CAMERA", d: "A device used to take pictures"},
-            {w: "SCHOOL", d: "A place where children go to learn"}, {w: "WINTER", d: "The coldest season of the year"}
-        ]
+        3: [{w: "CAT", d: "A small furry pet that meows"}, {w: "DOG", d: "Man's best friend that barks"}, {w: "SUN", d: "The star in the sky"}, {w: "BOX", d: "Used to hold or ship items"}, {w: "SKY", d: "Where the clouds are"}, {w: "PEN", d: "Tool used for writing"}, {w: "CUP", d: "You drink water or tea from it"}, {w: "BAT", d: "Used in baseball"}, {w: "HAT", d: "Wear it on your head"}, {w: "ICE", d: "Frozen water"}],
+        4: [{w: "BLUE", d: "Color of the ocean"}, {w: "FISH", d: "Swims in water"}, {w: "WIND", d: "Moving air"}, {w: "RAIN", d: "Falling from the clouds"}, {w: "FIRE", d: "Hot and produces smoke"}, {w: "SNOW", d: "Cold white flakes"}, {w: "MOON", d: "Glowing in the night sky"}, {w: "STAR", d: "Twinkling light in space"}, {w: "TREE", d: "Tall plant with leaves"}, {w: "BIRD", d: "Wings and flies"}],
+        5: [{w: "APPLE", d: "Round red or green fruit"}, {w: "BREAD", d: "Used to make sandwiches"}, {w: "WATER", d: "Clear liquid we drink"}, {w: "HOUSE", d: "Building where people live"}, {w: "MUSIC", d: "Played on instruments"}, {w: "CLOCK", d: "Tells the time"}, {w: "TABLE", d: "Used for eating"}, {w: "HEART", d: "Pumps blood"}, {w: "PIANO", d: "Instrument with black/white keys"}, {w: "SMILE", d: "What you do when happy"}],
+        6: [{w: "ORANGE", d: "Citrus fruit"}, {w: "BOTTLE", d: "Holds liquids"}, {w: "WINDOW", d: "Glass opening in a wall"}, {w: "COFFEE", d: "Dark morning drink"}, {w: "PLANET", d: "Large object like Earth"}, {w: "FLOWER", d: "Colorful plant part"}, {w: "GARDEN", d: "Where veggies grow"}, {w: "CAMERA", d: "Takes pictures"}, {w: "SCHOOL", d: "Place to learn"}, {w: "WINTER", d: "Coldest season"}]
     };
 
-    let audioCtx;
+    let audioCtx, targets = [], wheelData = [], wheels = [], offsets = [];
+    let currentLvl = 1, wordLen = 3, streak = 0;
+
     function playSound(type) {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
+        const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
         osc.type = 'square';
         if (type === 'spin') {
             osc.frequency.setValueAtTime(180, audioCtx.currentTime);
@@ -186,20 +167,25 @@
             osc.start(); osc.stop(audioCtx.currentTime + 0.1);
         } else if (type === 'cheer') {
             [523, 659, 783, 1046].forEach((f, i) => {
-                const o = audioCtx.createOscillator();
-                const g = audioCtx.createGain();
+                const o = audioCtx.createOscillator(), g = audioCtx.createGain();
                 o.type = 'square'; o.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.1));
                 g.gain.setValueAtTime(0.1, audioCtx.currentTime + (i * 0.1));
                 g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + (i * 0.1) + 0.3);
                 o.connect(g); g.connect(audioCtx.destination);
                 o.start(audioCtx.currentTime + (i * 0.1)); o.stop(audioCtx.currentTime + (i * 0.1) + 0.4);
             });
+        } else if (type === 'levelup') {
+            [261, 329, 392, 523, 659, 783, 1046].forEach((f, i) => {
+                const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+                o.type = 'square'; o.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.05));
+                g.gain.setValueAtTime(0.08, audioCtx.currentTime + (i * 0.05));
+                g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + (i * 0.05) + 0.1);
+                o.connect(g); g.connect(audioCtx.destination);
+                o.start(audioCtx.currentTime + (i * 0.05)); o.stop(audioCtx.currentTime + (i * 0.05) + 0.1);
+            });
         }
         osc.connect(gain); gain.connect(audioCtx.destination);
     }
-
-    let targets = [], wheelData = [], wheels = [], offsets = [];
-    let currentLvl = 1, wordLen = 3, streak = 0;
 
     function initTitle() {
         const c1 = document.getElementById('title-1'), c2 = document.getElementById('title-2');
@@ -219,9 +205,7 @@
         let d1 = list[Math.floor(Math.random()*list.length)];
         let d2 = list[Math.floor(Math.random()*list.length)];
         while(d1.w === d2.w) d2 = list[Math.floor(Math.random()*list.length)];
-        wheelData = [d1, d2];
-        targets = [d1.w, d2.w];
-        
+        wheelData = [d1, d2]; targets = [d1.w, d2.w];
         buildWheels();
         document.getElementById('game-area').classList.remove('hidden');
         document.getElementById('lvl-num').innerText = currentLvl;
@@ -232,10 +216,7 @@
 
     function buildWheels() {
         const grid = document.getElementById('main-grid');
-        grid.innerHTML = "";
-        wheels = [];
-        offsets = new Array(wordLen).fill(8);
-
+        grid.innerHTML = ""; wheels = []; offsets = new Array(wordLen).fill(8);
         for(let i=0; i<wordLen; i++) {
             let wheelChars = [targets[0][i], targets[1][i]];
             while(wheelChars.length < 8) {
@@ -244,21 +225,15 @@
             }
             wheelChars.sort(() => Math.random() - 0.5);
             wheels[i] = wheelChars;
-
             const group = document.createElement('div');
             group.className = 'column-group';
             group.innerHTML = `<div class="wheel-window"><div class="wheel-strip" id="strip-${i}"></div></div>
-                <div class="arrow-stack">
-                    <button class="arrow-btn" onclick="spin(${i}, -1)">▲</button>
-                    <button class="arrow-btn" onclick="spin(${i}, 1)">▼</button>
-                </div>`;
+                <div class="arrow-stack"><button class="arrow-btn" onclick="spin(${i}, -1)">▲</button><button class="arrow-btn" onclick="spin(${i}, 1)">▼</button></div>`;
             grid.appendChild(group);
-
             const strip = document.getElementById(`strip-${i}`);
-            [...wheelChars, ...wheelChars, ...wheelChars, ...wheelChars, ...wheelChars].forEach(char => {
+            [...wheels[i], ...wheels[i], ...wheels[i], ...wheels[i], ...wheels[i]].forEach(char => {
                 const cell = document.createElement('div');
-                cell.className = 'letter-cell'; cell.innerText = char;
-                strip.appendChild(cell);
+                cell.className = 'letter-cell'; cell.innerText = char; strip.appendChild(cell);
             });
             updateStrip(i, false);
         }
@@ -266,19 +241,17 @@
     }
 
     function spin(i, dir) {
-        playSound('spin');
-        offsets[i] += dir;
-        updateStrip(i, true);
+        playSound('spin'); offsets[i] += dir; updateStrip(i, true);
         setTimeout(() => {
             if (offsets[i] < 8 || offsets[i] >= 16) {
-                offsets[i] = ((offsets[i] % 8) + 8);
-                updateStrip(i, false);
+                offsets[i] = ((offsets[i] % 8) + 8); updateStrip(i, false);
             }
         }, 200);
     }
 
     function updateStrip(i, animate) {
         const strip = document.getElementById(`strip-${i}`);
+        if(!strip) return;
         strip.style.transition = animate ? "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)" : "none";
         strip.style.transform = `translateY(-${offsets[i] * 55}px)`;
     }
@@ -286,8 +259,7 @@
     function shuffleWheels(snd = true) {
         if(snd) playSound('spin');
         for(let i=0; i<wordLen; i++) {
-            offsets[i] = 8 + Math.floor(Math.random() * 8);
-            updateStrip(i, false);
+            offsets[i] = 8 + Math.floor(Math.random() * 8); updateStrip(i, false);
         }
     }
 
@@ -297,59 +269,57 @@
     }
 
     function giveClue() {
-        playSound('spin');
-        const col = Math.floor(Math.random() * wordLen);
-        const char = targets[0][col];
+        playSound('spin'); const col = Math.floor(Math.random() * wordLen);
         const msg = document.getElementById('msg-box');
-        msg.innerText = `HINT: Wheel ${col+1} top is '${char}'`;
-        setTimeout(() => { 
-            if(msg.innerText.includes("HINT")) msg.innerText = "Spin the Word Wheel and find the words!"; 
-        }, 5000);
+        msg.innerText = `HINT: Wheel ${col+1} top is '${targets[0][col]}'`;
+        setTimeout(() => { if(msg.innerText.includes("HINT")) msg.innerText = "Spin the Word Wheel and find the words!"; }, 5000);
     }
 
     function giveDefinition() {
-        playSound('spin');
-        const wordIdx = Math.floor(Math.random() * 2);
+        playSound('spin'); const wordIdx = Math.floor(Math.random() * 2);
         const msg = document.getElementById('msg-box');
         msg.innerText = `DEFINE: ${wheelData[wordIdx].d}`;
-        setTimeout(() => { 
-            if(msg.innerText.includes("DEFINE")) msg.innerText = "Spin the Word Wheel and find the words!"; 
-        }, 7000);
+        setTimeout(() => { if(msg.innerText.includes("DEFINE")) msg.innerText = "Spin the Word Wheel and find the words!"; }, 7000);
     }
 
     function checkSolution() {
         let w1 = "", w2 = "";
-        for(let i=0; i<wordLen; i++) {
-            w1 += getCharAtPos(i, 0);
-            w2 += getCharAtPos(i, 1);
-        }
-
+        for(let i=0; i<wordLen; i++) { w1 += getCharAtPos(i, 0); w2 += getCharAtPos(i, 1); }
         if(w1 === targets[0] && w2 === targets[1]) {
             playSound('cheer');
-            
-            // Trigger sparkle animation class
-            document.querySelectorAll('.letter-cell').forEach((c, idx) => {
-                const col = Math.floor(idx / 40); // 40 cells per strip (5 sets of 8)
-                const innerIdx = idx % 40;
-                
-                // Only animate the visible cells (Top and Bottom row in middle set)
-                if(innerIdx === (offsets[col]) || innerIdx === (offsets[col] + 1)) {
-                    c.classList.add('correct');
-                }
-            });
-
+            for(let i=0; i<wordLen; i++) {
+                const cells = document.getElementById(`strip-${i}`).children;
+                cells[offsets[i]].classList.add('correct');
+                cells[offsets[i]+1].classList.add('correct');
+            }
             streak++;
             setTimeout(() => {
                 currentLvl++; 
-                if(currentLvl % 2 === 0 && wordLen < 6) wordLen++;
-                loadLevel();
+                let prevWordLen = wordLen;
+                if(currentLvl % 2 === 1 && wordLen < 6) wordLen++;
+                
+                if(wordLen > prevWordLen) {
+                    showLevelUp();
+                } else {
+                    loadLevel();
+                }
             }, 1800);
         } else {
-            const msg = document.getElementById('msg-box');
-            msg.innerText = "NOT QUITE!";
-            msg.style.color = "red";
+            const msg = document.getElementById('msg-box'); msg.innerText = "NOT QUITE!"; msg.style.color = "red";
             setTimeout(() => { msg.innerText = "Spin the Word Wheel and find the words!"; msg.style.color = "var(--purple)"; }, 1500);
         }
+    }
+
+    function showLevelUp() {
+        const screen = document.getElementById('level-up-screen');
+        const desc = document.getElementById('lvl-up-desc');
+        desc.innerText = `NOW WITH ${wordLen} LETTERS!`;
+        screen.classList.add('show');
+        playSound('levelup');
+        setTimeout(() => {
+            screen.classList.remove('show');
+            loadLevel();
+        }, 2500);
     }
 
     function reveal() {
@@ -359,12 +329,10 @@
             let targetIdx = -1;
             for(let j=0; j<8; j++) {
                 if(wheel[j] === targets[0][i] && wheel[(j+1)%8] === targets[1][i]) {
-                    targetIdx = j;
-                    break;
+                    targetIdx = j; break;
                 }
             }
-            offsets[i] = 8 + targetIdx;
-            updateStrip(i, true);
+            offsets[i] = 8 + targetIdx; updateStrip(i, true);
         }
         document.getElementById('msg-box').innerText = "REVEALED - RETURNING TO LVL 1";
         setTimeout(loadLevel, 2500);
