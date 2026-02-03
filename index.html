@@ -8,7 +8,7 @@
         :root {
             --purple: #3d1f6e; --orange: #f2631a; --yellow: #ffd447;
             --blue: #54baf7; --white: #ffffff; --black: #000000;
-            --green: #DDEDAA; --grey: #e0e0e0; --light-grey: #f5f5f5;
+            --green: #DDEDAA; --grey: #e0e0e0; --light-grey: #f2f2f2;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -21,42 +21,53 @@
 
         .game-card {
             background: var(--white); width: 100%; max-width: 450px;
-            border-radius: 30px; padding: 20px; text-align: center;
+            border-radius: 30px; padding: 25px; text-align: center;
             box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            position: relative; overflow: hidden;
         }
 
+        /* --- ANIMATED TITLE --- */
         .title-letter {
-            font-size: 2.5rem; font-weight: 900; color: var(--purple);
-            text-shadow: 3px 3px 0 var(--yellow); display: inline-block; margin: 0 2px;
+            font-size: 2.8rem; font-weight: 900; color: var(--purple);
+            text-shadow: 3px 3px 0 var(--yellow); display: inline-block;
+            animation: bounceIn 0.8s cubic-bezier(0.36, 0, 0.66, -0.56) backwards;
+        }
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.3) translateY(-100px); }
+            50% { opacity: 1; transform: scale(1.05) translateY(10px); }
+            70% { transform: scale(0.9) translateY(-5px); }
+            100% { transform: scale(1) translateY(0); }
         }
 
+        /* --- WHEELS --- */
         .game-grid { display: flex; justify-content: center; gap: 8px; margin: 20px 0; }
         .column-group { display: flex; flex-direction: column; align-items: center; gap: 10px; }
         
         .wheel-window {
-            width: clamp(45px, 15vw, 65px); height: 110px; 
-            background: #f0f0f0; border-radius: 12px; overflow: hidden;
-            position: relative; border: 3px solid var(--purple);
+            width: clamp(45px, 15vw, 60px); height: 110px; 
+            background: #eee; border-radius: 12px; overflow: hidden;
+            position: relative; border: 3px solid var(--black);
         }
         .wheel-strip {
             display: flex; flex-direction: column;
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.25s cubic-bezier(0.45, 0.05, 0.55, 0.95);
         }
         .letter-cell {
             height: 55px; width: 100%; display: flex; align-items: center; 
             justify-content: center; font-size: 1.8rem; font-weight: 900;
-            background: white; border-bottom: 1px solid #eee; color: var(--purple);
+            background: white; border-bottom: 1px solid #ddd; color: var(--purple);
         }
-        .letter-cell.correct { background: var(--green); }
+        .letter-cell.correct { background: var(--green) !important; }
 
-        .arrow-stack { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+        .arrow-stack { display: flex; flex-direction: column; gap: 5px; width: 100%; }
         .arrow-btn {
             background: var(--grey); border: 2px solid var(--black);
             border-radius: 8px; cursor: pointer; font-size: 1.2rem;
-            height: 40px; box-shadow: 0 3px 0 var(--black);
+            height: 35px; box-shadow: 0 3px 0 var(--black);
         }
         .arrow-btn:active { transform: translateY(2px); box-shadow: none; }
 
+        /* --- BUTTONS --- */
         .button-stack { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
         .row-split { display: flex; gap: 10px; }
         
@@ -68,86 +79,94 @@
         .action-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--black); }
         
         .btn-submit { background: var(--blue); color: white; width: 100%; }
-        .btn-clue { background: var(--yellow); flex: 1; }
+        .btn-clue { background: var(--yellow); flex: 1; color: var(--purple); }
         .btn-shuffle { background: var(--white); flex: 1; }
         
         .btn-reveal {
-            background: var(--light-grey); color: #888; border: none;
-            box-shadow: none; font-size: 0.9rem; padding: 10px;
-            width: 100%; margin-top: 5px; border-radius: 10px;
+            background: var(--light-grey); color: #999; border: none;
+            box-shadow: none; font-size: 0.9rem; padding: 12px;
+            width: 100%; margin-top: 5px; border-radius: 10px; font-weight: bold;
         }
 
-        #msg-box { min-height: 25px; margin: 10px 0; font-weight: bold; color: var(--purple); }
+        #msg-box { min-height: 40px; margin: 10px 0; font-weight: 800; color: var(--purple); display: flex; align-items: center; justify-content: center; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div id="splash">
-        <div style="margin-bottom: 20px;">
-            <div id="title-1"></div>
-            <div id="title-2"></div>
-        </div>
-        <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple);" onclick="startGame()">PLAY NOW</button>
-    </div>
-
-    <div id="loading" class="hidden" style="color: white; font-weight: 900; margin-top: 50px;">LOADING...</div>
-
-    <div id="game-area" class="game-card hidden">
-        <div style="display: flex; justify-content: space-between; font-weight: 900; margin-bottom: 10px;">
-            <span>LEVEL: <span id="lvl-num">1</span></span>
-            <span>STREAK: <span id="streak-num">0</span></span>
-        </div>
-        <div class="game-grid" id="main-grid"></div>
-        <div id="msg-box">Find the words!</div>
-        <div class="button-stack">
-            <button class="action-btn btn-submit" onclick="checkSolution()">SUBMIT WORD</button>
-            <div class="row-split">
-                <button class="action-btn btn-clue" onclick="giveClue()">CLUE</button>
-                <button class="action-btn btn-shuffle" onclick="shuffleWheels()">SHUFFLE</button>
+    <div class="game-card">
+        <div id="splash">
+            <div style="margin-bottom: 30px;">
+                <div id="title-1"></div>
+                <div id="title-2"></div>
             </div>
-            <button class="btn-reveal" onclick="reveal()">Reveal Answer</button>
+            <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple);" onclick="initGame()">PLAY NOW</button>
         </div>
+
+        <div id="game-area" class="hidden">
+            <div style="display: flex; justify-content: space-between; font-weight: 900; margin-bottom: 10px; font-size: 0.8rem;">
+                <span>LEVEL: <span id="lvl-num">1</span></span>
+                <span>STREAK: <span id="streak-num">0</span></span>
+            </div>
+            
+            <div class="game-grid" id="main-grid"></div>
+            
+            <div id="msg-box">Find the words!</div>
+            
+            <div class="button-stack">
+                <button class="action-btn btn-submit" onclick="checkSolution()">SUBMIT</button>
+                <div class="row-split">
+                    <button class="action-btn btn-clue" onclick="giveClue()">CLUE</button>
+                    <button class="action-btn btn-shuffle" onclick="shuffleWheels()">SHUFFLE</button>
+                </div>
+                <button class="btn-reveal" onclick="reveal()">REVEAL ANSWER</button>
+            </div>
+        </div>
+        
+        <div id="loading" class="hidden" style="padding: 50px; font-weight: 900;">LOADING WORDS...</div>
     </div>
 
 <script>
-    // --- AUDIO SYSTEM (NES STYLE) ---
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
+    // --- NES SOUND ENGINE ---
+    let audioCtx;
     function playSound(type) {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
+        
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        osc.type = 'square'; // Classic NES square wave
+        osc.type = 'square';
 
-        if (type === 'click') {
-            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        if (type === 'spin') {
+            osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
             gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
+            osc.connect(gain); gain.connect(audioCtx.destination);
             osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-        } else if (type === 'success') {
-            [440, 554, 659, 880].forEach((f, i) => {
+        } else if (type === 'cheer') {
+            // Complex chime for celebration
+            [523, 659, 783, 1046].forEach((f, i) => {
                 const o = audioCtx.createOscillator();
                 const g = audioCtx.createGain();
                 o.type = 'square';
-                o.frequency.setValueAtTime(f, audioCtx.currentTime + i * 0.1);
-                g.gain.setValueAtTime(0.1, audioCtx.currentTime + i * 0.1);
-                g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + i * 0.1 + 0.1);
+                o.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.1));
+                g.gain.setValueAtTime(0.1, audioCtx.currentTime + (i * 0.1));
+                g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (i * 0.1) + 0.3);
                 o.connect(g); g.connect(audioCtx.destination);
-                o.start(audioCtx.currentTime + i * 0.1); o.stop(audioCtx.currentTime + i * 0.1 + 0.1);
+                o.start(audioCtx.currentTime + (i * 0.1)); o.stop(audioCtx.currentTime + (i * 0.1) + 0.4);
             });
-        } else if (type === 'error') {
-            osc.frequency.setValueAtTime(110, audioCtx.currentTime);
-            osc.frequency.linearRampToValueAtTime(70, audioCtx.currentTime + 0.3);
+        } else if (type === 'fail') {
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(40, audioCtx.currentTime + 0.4);
             gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.4);
         }
-        osc.connect(gain); gain.connect(audioCtx.destination);
     }
 
-    // --- GAME LOGIC ---
+    // --- GAME ENGINE ---
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     let targets = [], wheels = [], offsets = [];
     let currentLvl = 1, wordLen = 3, streak = 0;
@@ -155,13 +174,13 @@
     function initTitle() {
         const row1 = "WORD", row2 = "WHEEL";
         const c1 = document.getElementById('title-1'), c2 = document.getElementById('title-2');
-        [...row1].forEach(l => c1.innerHTML += `<span class="title-letter">${l}</span>`);
-        [...row2].forEach(l => c2.innerHTML += `<span class="title-letter">${l}</span>`);
+        [...row1].forEach((l, i) => c1.innerHTML += `<span class="title-letter" style="animation-delay:${i*0.1}s">${l}</span>`);
+        [...row2].forEach((l, i) => c2.innerHTML += `<span class="title-letter" style="animation-delay:${(i+4)*0.1}s">${l}</span>`);
     }
     initTitle();
 
-    async function startGame() {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
+    async function initGame() {
+        playSound('spin');
         document.getElementById('splash').classList.add('hidden');
         await loadLevel();
     }
@@ -171,38 +190,47 @@
         document.getElementById('loading').classList.remove('hidden');
         
         try {
-            const res = await fetch(`https://api.datamuse.com/words?sp=${'?'.repeat(wordLen)}&md=d&max=80`);
+            const res = await fetch(`https://api.datamuse.com/words?sp=${'?'.repeat(wordLen)}&md=d&max=100`);
             const data = await res.json();
             const valid = data.filter(w => /^[a-z]+$/.test(w.word));
-            if(valid.length < 2) throw "Not enough words";
+            if(valid.length < 2) throw "Fallback";
             let idx1 = Math.floor(Math.random() * valid.length);
             let idx2 = (idx1 + 1) % valid.length;
             targets = [valid[idx1].word.toUpperCase(), valid[idx2].word.toUpperCase()];
         } catch (e) {
-            targets = [wordLen === 3 ? "CAT" : "POWER", wordLen === 3 ? "DOG" : "LIGHT"];
+            // Hardcoded Dictionary Fallbacks
+            const dict = {
+                3: [["CAT","DOG"], ["SUN","HOT"], ["BAT","TEN"]],
+                4: [["BLUE","FISH"], ["WIND","RAIN"], ["GOLF","CLUB"]],
+                5: [["APPLE","SWEET"], ["BREAD","TOAST"], ["LIGHT","POWER"]]
+            };
+            const set = dict[wordLen] || dict[3];
+            const pick = set[Math.floor(Math.random()*set.length)];
+            targets = [pick[0], pick[1]];
         }
 
-        buildGrid();
+        buildWheels();
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('game-area').classList.remove('hidden');
         document.getElementById('lvl-num').innerText = currentLvl;
         document.getElementById('streak-num').innerText = streak;
     }
 
-    function buildGrid() {
+    function buildWheels() {
         const grid = document.getElementById('main-grid');
         grid.innerHTML = "";
         wheels = [];
         offsets = new Array(wordLen).fill(0);
 
         for(let i=0; i<wordLen; i++) {
-            let chars = [targets[0][i], targets[1][i]];
-            while(chars.length < 8) {
+            // Create a FIXED 8-letter configuration for this level
+            let wheelChars = [targets[0][i], targets[1][i]];
+            while(wheelChars.length < 8) {
                 let r = alphabet[Math.floor(Math.random()*26)];
-                if(!chars.includes(r)) chars.push(r);
+                if(!wheelChars.includes(r)) wheelChars.push(r);
             }
-            chars.sort(() => Math.random() - 0.5);
-            wheels[i] = chars;
+            wheelChars.sort(() => Math.random() - 0.5);
+            wheels[i] = wheelChars;
 
             const group = document.createElement('div');
             group.className = 'column-group';
@@ -215,7 +243,8 @@
             grid.appendChild(group);
 
             const strip = document.getElementById(`strip-${i}`);
-            [...chars, ...chars, ...chars].forEach(char => {
+            // Loop the fixed sequence 3 times for visual continuity
+            [...wheelChars, ...wheelChars, ...wheelChars].forEach(char => {
                 const cell = document.createElement('div');
                 cell.className = 'letter-cell'; cell.innerText = char;
                 strip.appendChild(cell);
@@ -226,7 +255,8 @@
     }
 
     function spin(i, dir) {
-        playSound('click');
+        playSound('spin');
+        // Up moves letters up (strip moves down), Down moves letters down (strip moves up)
         offsets[i] = (offsets[i] + dir + 8) % 8;
         updateStrip(i);
     }
@@ -238,36 +268,25 @@
     }
 
     function shuffleWheels(playSnd = true) {
-        if(playSnd) playSound('click');
+        if(playSnd) playSound('spin');
         for(let i=0; i<wordLen; i++) {
             offsets[i] = Math.floor(Math.random() * 8);
             updateStrip(i);
         }
     }
 
-    function getCharAtPos(colIndex, rowIndex) {
-        let actualIndex = (offsets[colIndex] + rowIndex) % 8;
-        return wheels[colIndex][actualIndex];
+    function getCharAtPos(col, row) {
+        let idx = (offsets[col] + row) % 8;
+        return wheels[col][idx];
     }
 
     function giveClue() {
-        let wrongIndices = [];
-        for(let i=0; i<wordLen; i++) {
-            if(getCharAtPos(i, 0) !== targets[0][i] || getCharAtPos(i, 1) !== targets[1][i]) {
-                wrongIndices.push(i);
-            }
-        }
-
-        if(wrongIndices.length > 0) {
-            playSound('click');
-            let col = wrongIndices[Math.floor(Math.random() * wrongIndices.length)];
-            // Safely find the alignment
-            for(let attempt = 0; attempt < 8; attempt++) {
-                if(getCharAtPos(col, 0) === targets[0][col] && getCharAtPos(col, 1) === targets[1][col]) break;
-                offsets[col] = (offsets[col] + 1) % 8;
-            }
-            updateStrip(col);
-        }
+        playSound('spin');
+        const col = Math.floor(Math.random() * wordLen);
+        const char = targets[0][col];
+        const msg = document.getElementById('msg-box');
+        msg.innerText = `HINT: Column ${col+1} has '${char}'`;
+        setTimeout(() => { msg.innerText = "Find the words!"; }, 5000);
     }
 
     function checkSolution() {
@@ -278,24 +297,26 @@
         }
 
         if(w1 === targets[0] && w2 === targets[1]) {
-            playSound('success');
+            playSound('cheer');
             document.querySelectorAll('.letter-cell').forEach(c => c.classList.add('correct'));
             streak++;
             setTimeout(() => {
                 currentLvl++; 
                 if(currentLvl % 2 === 0 && wordLen < 6) wordLen++;
                 loadLevel();
-            }, 1200);
+            }, 1500);
         } else {
-            playSound('error');
-            document.getElementById('msg-box').innerText = "TRY AGAIN!";
-            setTimeout(() => { document.getElementById('msg-box').innerText = "Find the words!"; }, 1000);
+            playSound('fail');
+            const msg = document.getElementById('msg-box');
+            msg.innerText = "NOT QUITE!";
+            msg.style.color = "red";
+            setTimeout(() => { msg.innerText = "Find the words!"; msg.style.color = "var(--purple)"; }, 1500);
         }
     }
 
     function reveal() {
-        playSound('click');
-        streak = 0;
+        playSound('fail');
+        streak = 0; currentLvl = 1; wordLen = 3;
         for(let i=0; i<wordLen; i++) {
             for(let attempt = 0; attempt < 8; attempt++) {
                 if(getCharAtPos(i, 0) === targets[0][i] && getCharAtPos(i, 1) === targets[1][i]) break;
@@ -303,7 +324,10 @@
             }
             updateStrip(i);
         }
-        checkSolution();
+        document.querySelectorAll('.letter-cell').forEach(c => c.classList.add('correct'));
+        const msg = document.getElementById('msg-box');
+        msg.innerText = "ANSWER REVEALED - RESETTING...";
+        setTimeout(() => { loadLevel(); }, 2000);
     }
 </script>
 </body>
