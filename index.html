@@ -22,8 +22,7 @@
         .game-card {
             background: var(--white); width: 100%; max-width: 450px;
             border-radius: 30px; padding: 25px; text-align: center;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            position: relative;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2); position: relative;
         }
 
         .title-letter {
@@ -31,24 +30,16 @@
             text-shadow: 3px 3px 0 var(--yellow); display: inline-block;
             animation: bounceIn 0.8s cubic-bezier(0.36, 0, 0.66, -0.56) backwards;
         }
-        @keyframes bounceIn {
-            0% { opacity: 0; transform: scale(0.3) translateY(-100px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
+        @keyframes bounceIn { 0% { opacity: 0; transform: scale(0.3) translateY(-100px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
 
-        /* --- LEVEL UP OVERLAY --- */
         #level-up-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(61, 31, 110, 0.95); z-index: 100;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            border-radius: 30px; color: var(--yellow); visibility: hidden; opacity: 0;
-            transition: 0.4s;
+            border-radius: 30px; color: var(--yellow); visibility: hidden; opacity: 0; transition: 0.4s;
         }
         #level-up-screen.show { visibility: visible; opacity: 1; }
-        .lvl-up-text { font-size: 3rem; font-weight: 900; margin: 0; animation: pulse 0.5s infinite alternate; }
-        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
 
-        /* --- WHEELS --- */
         .game-grid { display: flex; justify-content: center; gap: 8px; margin: 20px 0; }
         .column-group { display: flex; flex-direction: column; align-items: center; gap: 10px; }
         
@@ -62,19 +53,14 @@
             height: 55px; width: 100%; display: flex; align-items: center; 
             justify-content: center; font-size: 1.8rem; font-weight: 900;
             background: white; border-bottom: 1px solid #ddd; color: var(--purple);
-            position: relative;
         }
 
         .letter-cell.correct { 
             background: var(--green) !important; 
             animation: sparklePulse 0.4s ease infinite alternate;
         }
-        @keyframes sparklePulse {
-            from { box-shadow: inset 0 0 0px var(--yellow); }
-            to { box-shadow: inset 0 0 15px var(--yellow); transform: scale(1.02); }
-        }
+        @keyframes sparklePulse { from { box-shadow: inset 0 0 0px var(--yellow); } to { box-shadow: inset 0 0 15px var(--yellow); transform: scale(1.02); } }
 
-        /* --- BUTTONS --- */
         .arrow-stack { display: flex; flex-direction: column; gap: 5px; width: 100%; }
         .arrow-btn {
             background: var(--grey); border: 2px solid var(--black);
@@ -82,10 +68,8 @@
             height: 40px; box-shadow: 0 3px 0 var(--black); transition: 0.05s;
         }
         .arrow-btn:active, .action-btn:active { 
-            background: var(--yellow) !important; 
-            color: var(--purple) !important;
-            transform: translateY(3px); 
-            box-shadow: none !important; 
+            background: var(--yellow) !important; color: var(--purple) !important;
+            transform: translateY(3px); box-shadow: none !important; 
         }
 
         .button-stack { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
@@ -105,7 +89,6 @@
             box-shadow: none; font-size: 0.9rem; padding: 12px;
             width: 100%; margin-top: 5px; border-radius: 10px; font-weight: bold; cursor: pointer;
         }
-        .btn-reveal:active { background: var(--yellow); color: var(--purple); }
 
         #msg-box { min-height: 55px; margin: 10px 0; font-weight: 800; color: var(--purple); font-size: 0.9rem; line-height: 1.2; display: flex; align-items: center; justify-content: center; }
         .hidden { display: none !important; }
@@ -115,8 +98,8 @@
 
     <div class="game-card">
         <div id="level-up-screen">
-            <p class="lvl-up-text">LEVEL UP!</p>
-            <p id="lvl-up-desc" style="font-weight: bold; margin-top: 10px;">More letters incoming...</p>
+            <p style="font-size: 3rem; font-weight: 900; margin: 0;">LEVEL UP!</p>
+            <p id="lvl-up-desc" style="font-weight: bold; margin-top: 10px;"></p>
         </div>
 
         <div id="splash">
@@ -134,23 +117,23 @@
             <div id="msg-box">Spin the Word Wheel and find the words!</div>
             
             <div class="button-stack">
-                <button class="action-btn btn-submit" onclick="checkSolution()">SUBMIT</button>
-                <div class="row-split">
+                <button id="btn-main-action" class="action-btn btn-submit" onclick="checkSolution()">SUBMIT</button>
+                <div id="secondary-btns" class="row-split">
                     <button class="action-btn btn-white" onclick="giveClue()">CLUE</button>
                     <button class="action-btn btn-white" onclick="giveDefinition()">DEFINE</button>
                     <button class="action-btn btn-white" onclick="shuffleWheels()">SHUFFLE</button>
                 </div>
-                <button class="btn-reveal" onclick="reveal()">REVEAL ANSWER</button>
+                <button id="btn-reveal-action" class="btn-reveal" onclick="reveal()">REVEAL ANSWER</button>
             </div>
         </div>
     </div>
 
 <script>
     const commonWords = {
-        3: [{w: "CAT", d: "A small furry pet that meows"}, {w: "DOG", d: "Man's best friend that barks"}, {w: "SUN", d: "The star in the sky"}, {w: "BOX", d: "Used to hold or ship items"}, {w: "SKY", d: "Where the clouds are"}, {w: "PEN", d: "Tool used for writing"}, {w: "CUP", d: "You drink water or tea from it"}, {w: "BAT", d: "Used in baseball"}, {w: "HAT", d: "Wear it on your head"}, {w: "ICE", d: "Frozen water"}],
-        4: [{w: "BLUE", d: "Color of the ocean"}, {w: "FISH", d: "Swims in water"}, {w: "WIND", d: "Moving air"}, {w: "RAIN", d: "Falling from the clouds"}, {w: "FIRE", d: "Hot and produces smoke"}, {w: "SNOW", d: "Cold white flakes"}, {w: "MOON", d: "Glowing in the night sky"}, {w: "STAR", d: "Twinkling light in space"}, {w: "TREE", d: "Tall plant with leaves"}, {w: "BIRD", d: "Wings and flies"}],
-        5: [{w: "APPLE", d: "Round red or green fruit"}, {w: "BREAD", d: "Used to make sandwiches"}, {w: "WATER", d: "Clear liquid we drink"}, {w: "HOUSE", d: "Building where people live"}, {w: "MUSIC", d: "Played on instruments"}, {w: "CLOCK", d: "Tells the time"}, {w: "TABLE", d: "Used for eating"}, {w: "HEART", d: "Pumps blood"}, {w: "PIANO", d: "Instrument with black/white keys"}, {w: "SMILE", d: "What you do when happy"}],
-        6: [{w: "ORANGE", d: "Citrus fruit"}, {w: "BOTTLE", d: "Holds liquids"}, {w: "WINDOW", d: "Glass opening in a wall"}, {w: "COFFEE", d: "Dark morning drink"}, {w: "PLANET", d: "Large object like Earth"}, {w: "FLOWER", d: "Colorful plant part"}, {w: "GARDEN", d: "Where veggies grow"}, {w: "CAMERA", d: "Takes pictures"}, {w: "SCHOOL", d: "Place to learn"}, {w: "WINTER", d: "Coldest season"}]
+        3: [{w: "CAT", d: "Small furry pet"}, {w: "DOG", d: "Man's best friend"}, {w: "SUN", d: "Star in the sky"}, {w: "BOX", d: "Used for shipping"}, {w: "BAT", d: "Baseball hitter"}, {w: "TOY", d: "Something kids play with"}, {w: "SKY", d: "Where birds fly"}, {w: "HAT", d: "Worn on head"}],
+        4: [{w: "BLUE", d: "Sky color"}, {w: "FISH", d: "Swims in water"}, {w: "RAIN", d: "Falling water"}, {w: "SNOW", d: "Frozen rain"}, {w: "STAR", d: "Space light"}, {w: "MOON", d: "Night orb"}, {w: "TREE", d: "Woody plant"}, {w: "BIRD", d: "Flying animal"}],
+        5: [{w: "APPLE", d: "Fruit"}, {w: "WATER", d: "Drinkable liquid"}, {w: "HOUSE", d: "Living space"}, {w: "CLOCK", d: "Tells time"}, {w: "MUSIC", d: "Rhythmic sounds"}, {w: "HEART", d: "Body pump"}, {w: "SMILE", d: "Happy face"}, {w: "BREAD", d: "Sandwich base"}],
+        6: [{w: "ORANGE", d: "Citrus"}, {w: "BOTTLE", d: "Holds liquid"}, {w: "WINDOW", d: "Wall glass"}, {w: "COFFEE", d: "Morning bean drink"}, {w: "PLANET", d: "Like Earth"}, {w: "FLOWER", d: "Plant bloom"}, {w: "GARDEN", d: "Outdoor plant area"}, {w: "WINTER", d: "Cold season"}]
     };
 
     let audioCtx, targets = [], wheelData = [], wheels = [], offsets = [];
@@ -160,30 +143,9 @@
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
         osc.type = 'square';
-        if (type === 'spin') {
-            osc.frequency.setValueAtTime(180, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-        } else if (type === 'cheer') {
-            [523, 659, 783, 1046].forEach((f, i) => {
-                const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-                o.type = 'square'; o.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.1));
-                g.gain.setValueAtTime(0.1, audioCtx.currentTime + (i * 0.1));
-                g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + (i * 0.1) + 0.3);
-                o.connect(g); g.connect(audioCtx.destination);
-                o.start(audioCtx.currentTime + (i * 0.1)); o.stop(audioCtx.currentTime + (i * 0.1) + 0.4);
-            });
-        } else if (type === 'levelup') {
-            [261, 329, 392, 523, 659, 783, 1046].forEach((f, i) => {
-                const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-                o.type = 'square'; o.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.05));
-                g.gain.setValueAtTime(0.08, audioCtx.currentTime + (i * 0.05));
-                g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + (i * 0.05) + 0.1);
-                o.connect(g); g.connect(audioCtx.destination);
-                o.start(audioCtx.currentTime + (i * 0.05)); o.stop(audioCtx.currentTime + (i * 0.05) + 0.1);
-            });
-        }
+        if (type === 'spin') { osc.frequency.setValueAtTime(180, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1); gain.gain.setValueAtTime(0.05, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.1); }
+        else if (type === 'cheer') { [523, 659, 783, 1046].forEach((f, i) => { const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.type = 'square'; o.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.1)); g.gain.setValueAtTime(0.1, audioCtx.currentTime + (i * 0.1)); g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + (i * 0.1) + 0.3); o.connect(g); g.connect(audioCtx.destination); o.start(audioCtx.currentTime + (i * 0.1)); o.stop(audioCtx.currentTime + (i * 0.1) + 0.4); }); }
+        else if (type === 'levelup') { [261, 392, 523, 783].forEach((f, i) => { const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.type = 'square'; o.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.05)); g.gain.setValueAtTime(0.08, audioCtx.currentTime + (i * 0.05)); g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + (i * 0.05) + 0.1); o.connect(g); g.connect(audioCtx.destination); o.start(audioCtx.currentTime + (i * 0.05)); o.stop(audioCtx.currentTime + (i * 0.05) + 0.1); }); }
         osc.connect(gain); gain.connect(audioCtx.destination);
     }
 
@@ -194,37 +156,41 @@
     }
     initTitle();
 
-    function initGame() {
-        playSound('spin');
-        document.getElementById('splash').classList.add('hidden');
-        loadLevel();
-    }
+    function initGame() { playSound('spin'); document.getElementById('splash').classList.add('hidden'); loadLevel(); }
 
     function loadLevel() {
+        // Prepare words
         const list = commonWords[wordLen];
         let d1 = list[Math.floor(Math.random()*list.length)];
         let d2 = list[Math.floor(Math.random()*list.length)];
         while(d1.w === d2.w) d2 = list[Math.floor(Math.random()*list.length)];
         wheelData = [d1, d2]; targets = [d1.w, d2.w];
-        buildWheels();
+        
+        // Setup UI
+        document.getElementById('secondary-btns').classList.remove('hidden');
+        document.getElementById('btn-reveal-action').classList.remove('hidden');
+        document.getElementById('btn-main-action').innerText = "SUBMIT";
+        document.getElementById('btn-main-action').onclick = checkSolution;
         document.getElementById('game-area').classList.remove('hidden');
         document.getElementById('lvl-num').innerText = currentLvl;
         document.getElementById('streak-num').innerText = streak;
         document.getElementById('msg-box').innerText = "Spin the Word Wheel and find the words!";
         document.getElementById('msg-box').style.color = "var(--purple)";
+
+        buildWheels();
     }
 
     function buildWheels() {
         const grid = document.getElementById('main-grid');
         grid.innerHTML = ""; wheels = []; offsets = new Array(wordLen).fill(8);
         for(let i=0; i<wordLen; i++) {
-            let wheelChars = [targets[0][i], targets[1][i]];
-            while(wheelChars.length < 8) {
+            let charRow = [targets[0][i], targets[1][i]]; // Target 1 is index 0, Target 2 is index 1
+            while(charRow.length < 8) {
                 let r = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[Math.floor(Math.random()*26)];
-                if(!wheelChars.includes(r)) wheelChars.push(r);
+                if(!charRow.includes(r)) charRow.push(r);
             }
-            wheelChars.sort(() => Math.random() - 0.5);
-            wheels[i] = wheelChars;
+            charRow.sort(() => Math.random() - 0.5);
+            wheels[i] = charRow;
             const group = document.createElement('div');
             group.className = 'column-group';
             group.innerHTML = `<div class="wheel-window"><div class="wheel-strip" id="strip-${i}"></div></div>
@@ -232,8 +198,7 @@
             grid.appendChild(group);
             const strip = document.getElementById(`strip-${i}`);
             [...wheels[i], ...wheels[i], ...wheels[i], ...wheels[i], ...wheels[i]].forEach(char => {
-                const cell = document.createElement('div');
-                cell.className = 'letter-cell'; cell.innerText = char; strip.appendChild(cell);
+                const cell = document.createElement('div'); cell.className = 'letter-cell'; cell.innerText = char; strip.appendChild(cell);
             });
             updateStrip(i, false);
         }
@@ -242,11 +207,7 @@
 
     function spin(i, dir) {
         playSound('spin'); offsets[i] += dir; updateStrip(i, true);
-        setTimeout(() => {
-            if (offsets[i] < 8 || offsets[i] >= 16) {
-                offsets[i] = ((offsets[i] % 8) + 8); updateStrip(i, false);
-            }
-        }, 200);
+        setTimeout(() => { if (offsets[i] < 8 || offsets[i] >= 16) { offsets[i] = ((offsets[i] % 8) + 8); updateStrip(i, false); } }, 200);
     }
 
     function updateStrip(i, animate) {
@@ -258,9 +219,7 @@
 
     function shuffleWheels(snd = true) {
         if(snd) playSound('spin');
-        for(let i=0; i<wordLen; i++) {
-            offsets[i] = 8 + Math.floor(Math.random() * 8); updateStrip(i, false);
-        }
+        for(let i=0; i<wordLen; i++) { offsets[i] = 8 + Math.floor(Math.random() * 8); updateStrip(i, false); }
     }
 
     function getCharAtPos(col, row) {
@@ -268,19 +227,9 @@
         return wheels[col][charIndex];
     }
 
-    function giveClue() {
-        playSound('spin'); const col = Math.floor(Math.random() * wordLen);
-        const msg = document.getElementById('msg-box');
-        msg.innerText = `HINT: Wheel ${col+1} top is '${targets[0][col]}'`;
-        setTimeout(() => { if(msg.innerText.includes("HINT")) msg.innerText = "Spin the Word Wheel and find the words!"; }, 5000);
-    }
+    function giveClue() { playSound('spin'); const col = Math.floor(Math.random() * wordLen); const msg = document.getElementById('msg-box'); msg.innerText = `HINT: Wheel ${col+1} top is '${targets[0][col]}'`; setTimeout(() => { if(msg.innerText.includes("HINT")) msg.innerText = "Spin the Word Wheel!"; }, 5000); }
 
-    function giveDefinition() {
-        playSound('spin'); const wordIdx = Math.floor(Math.random() * 2);
-        const msg = document.getElementById('msg-box');
-        msg.innerText = `DEFINE: ${wheelData[wordIdx].d}`;
-        setTimeout(() => { if(msg.innerText.includes("DEFINE")) msg.innerText = "Spin the Word Wheel and find the words!"; }, 7000);
-    }
+    function giveDefinition() { playSound('spin'); const wordIdx = Math.floor(Math.random() * 2); const msg = document.getElementById('msg-box'); msg.innerText = `DEFINE: ${wheelData[wordIdx].d}`; setTimeout(() => { if(msg.innerText.includes("DEFINE")) msg.innerText = "Spin the Word Wheel!"; }, 7000); }
 
     function checkSolution() {
         let w1 = "", w2 = "";
@@ -289,53 +238,45 @@
             playSound('cheer');
             for(let i=0; i<wordLen; i++) {
                 const cells = document.getElementById(`strip-${i}`).children;
-                cells[offsets[i]].classList.add('correct');
-                cells[offsets[i]+1].classList.add('correct');
+                cells[offsets[i]].classList.add('correct'); cells[offsets[i]+1].classList.add('correct');
             }
             streak++;
             setTimeout(() => {
-                currentLvl++; 
-                let prevWordLen = wordLen;
-                if(currentLvl % 2 === 1 && wordLen < 6) wordLen++;
-                
-                if(wordLen > prevWordLen) {
-                    showLevelUp();
-                } else {
-                    loadLevel();
-                }
+                currentLvl++; let oldLen = wordLen; if(currentLvl % 2 === 1 && wordLen < 6) wordLen++;
+                if(wordLen > oldLen) showLevelUp(); else loadLevel();
             }, 1800);
         } else {
             const msg = document.getElementById('msg-box'); msg.innerText = "NOT QUITE!"; msg.style.color = "red";
-            setTimeout(() => { msg.innerText = "Spin the Word Wheel and find the words!"; msg.style.color = "var(--purple)"; }, 1500);
+            setTimeout(() => { msg.innerText = "Spin the Word Wheel!"; msg.style.color = "var(--purple)"; }, 1500);
         }
     }
 
     function showLevelUp() {
-        const screen = document.getElementById('level-up-screen');
-        const desc = document.getElementById('lvl-up-desc');
-        desc.innerText = `NOW WITH ${wordLen} LETTERS!`;
-        screen.classList.add('show');
-        playSound('levelup');
-        setTimeout(() => {
-            screen.classList.remove('show');
-            loadLevel();
-        }, 2500);
+        const screen = document.getElementById('level-up-screen'); document.getElementById('lvl-up-desc').innerText = `NOW WITH ${wordLen} LETTERS!`;
+        screen.classList.add('show'); playSound('levelup'); setTimeout(() => { screen.classList.remove('show'); loadLevel(); }, 2500);
     }
 
     function reveal() {
         streak = 0; currentLvl = 1; wordLen = 3;
         for(let i=0; i<wordLen; i++) {
             const wheel = wheels[i];
-            let targetIdx = -1;
+            // Find the index where wheel[j] is word1 letter and wheel[j+1] is word2 letter
+            let foundIdx = 0;
             for(let j=0; j<8; j++) {
                 if(wheel[j] === targets[0][i] && wheel[(j+1)%8] === targets[1][i]) {
-                    targetIdx = j; break;
+                    foundIdx = j; break;
                 }
             }
-            offsets[i] = 8 + targetIdx; updateStrip(i, true);
+            offsets[i] = 8 + foundIdx;
+            updateStrip(i, true);
         }
-        document.getElementById('msg-box').innerText = "REVEALED - RETURNING TO LVL 1";
-        setTimeout(loadLevel, 2500);
+        
+        // Toggle UI to "Play Again" mode
+        document.getElementById('msg-box').innerText = "ANSWER REVEALED!";
+        document.getElementById('secondary-btns').classList.add('hidden');
+        document.getElementById('btn-reveal-action').classList.add('hidden');
+        document.getElementById('btn-main-action').innerText = "PLAY AGAIN";
+        document.getElementById('btn-main-action').onclick = () => { streak=0; currentLvl=1; wordLen=3; loadLevel(); };
     }
 </script>
 </body>
