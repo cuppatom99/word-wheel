@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta property="og:title" content="Word Wheel Deluxe">
+    <meta property="og:description" content="Be a champ! Solve the Word Wheel and beat my time!">
+    <meta property="og:image" content="https://github.com/cuppatom99/word-wheel/blob/main/HEC-click-to-get-you-copy-cover-image.png?raw=true">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+
     <title>Word Wheel Deluxe</title>
     <style>
         :root {
@@ -118,17 +125,16 @@
         .victory-text { font-size: 1.3rem; line-height: 1.3; color: var(--purple); margin: 10px 0; font-weight: 900; }
         .book-promo-container { display: flex; flex-direction: column; align-items: center; gap: 15px; margin: 20px 0; }
         
-        /* UPDATED: Bigger image, no shadow */
-        .book-link img { width: 280px; max-width: 90%; border-radius: 10px; transition: transform 0.3s; box-shadow: none; }
+        .book-link img { width: 300px; max-width: 95%; border-radius: 10px; transition: transform 0.3s; box-shadow: none; }
         .book-link img:hover { transform: scale(1.02); }
         
         .promo-box {
             background: var(--yellow); color: var(--purple);
             padding: 15px; border-radius: 15px; border: 2px solid var(--purple);
-            font-weight: 800; font-size: 0.95rem; line-height: 1.4;
+            font-weight: 800; font-size: 1rem; line-height: 1.4;
         }
 
-        #share-status { font-size: 0.8rem; margin-top: 5px; color: var(--purple); font-weight: 900; opacity: 0.7; }
+        #share-status { font-size: 1rem; margin-top: 5px; color: var(--purple); font-weight: 900; }
     </style>
 </head>
 <body>
@@ -188,7 +194,7 @@
                 
                 <div class="button-stack">
                     <button id="btn-share-score" class="action-btn btn-share" onclick="shareScore()">SHARE SCORE 📤</button>
-                    <div id="share-status" class="hidden">Copied to Clipboard!</div>
+                    <div id="share-status" class="hidden">Score Copied! Paste it anywhere!</div>
                     <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple);" onclick="location.reload()">PLAY AGAIN</button>
                 </div>
             </div>
@@ -235,28 +241,28 @@
         if (type === 'click') { 
             const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.05);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+            osc.frequency.setValueAtTime(160, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.04);
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
             osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.04);
         } else if (type === 'start') {
             const notes = [261.6, 329.6, 392, 523.3]; 
             notes.forEach((f, i) => {
                 const o = audioCtx.createOscillator(), g = audioCtx.createGain();
                 o.type = 'triangle';
-                o.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.1));
-                g.gain.setValueAtTime(0.1, audioCtx.currentTime + (i * 0.1));
-                g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (i * 0.1) + 0.2);
+                o.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.08));
+                g.gain.setValueAtTime(0.1, audioCtx.currentTime + (i * 0.08));
+                g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (i * 0.08) + 0.2);
                 o.connect(g); g.connect(audioCtx.destination);
-                o.start(audioCtx.currentTime + (i * 0.1)); o.stop(audioCtx.currentTime + (i * 0.1) + 0.2);
+                o.start(audioCtx.currentTime + (i * 0.08)); o.stop(audioCtx.currentTime + (i * 0.08) + 0.22);
             });
         } else if (type === 'cheer') { 
             [523, 659, 783, 1046].forEach((f, i) => { 
                 const o = audioCtx.createOscillator(), g = audioCtx.createGain(); 
                 o.type = 'square'; o.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.1)); 
-                g.gain.setValueAtTime(0.08, audioCtx.currentTime + (i * 0.1)); 
+                g.gain.setValueAtTime(0.06, audioCtx.currentTime + (i * 0.1)); 
                 g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + (i * 0.1) + 0.3); 
                 o.connect(g); g.connect(audioCtx.destination); 
                 o.start(audioCtx.currentTime + (i * 0.1)); o.stop(audioCtx.currentTime + (i * 0.1) + 0.4); 
@@ -274,25 +280,27 @@
         }
     }
 
-    // UPDATED: Wordle-style Share Logic
     function shareScore() {
         const timeStr = formatTime(finalElapsedMs);
-        const url = window.location.href;
-        const emojis = "🔵🟡🟠🟣"; // One for each level color
-        const shareText = `🎡 Word Wheel Deluxe 🎡\nTime: ${timeStr}\n${emojis}\nI scored ${timeStr} on Word Wheel! Click here to try and beat me!\n${url}`;
+        const url = window.location.href.split('?')[0];
+        const shareText = `🎡 Word Wheel Deluxe 🎡\n\nI scored ${timeStr} on Word Wheel! Click here to try and beat me!\n\n${url}`;
         
-        if (navigator.share) {
+        if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
             navigator.share({
                 title: 'Word Wheel Deluxe',
                 text: shareText
-            }).catch(console.error);
+            }).catch(() => fallbackCopy(shareText));
         } else {
-            navigator.clipboard.writeText(shareText).then(() => {
-                const status = document.getElementById('share-status');
-                status.classList.remove('hidden');
-                setTimeout(() => status.classList.add('hidden'), 2000);
-            });
+            fallbackCopy(shareText);
         }
+    }
+
+    function fallbackCopy(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            const status = document.getElementById('share-status');
+            status.classList.remove('hidden');
+            setTimeout(() => status.classList.add('hidden'), 3500);
+        });
     }
 
     function updateLeaderboard() {
