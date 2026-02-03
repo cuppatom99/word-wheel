@@ -30,7 +30,6 @@
             flex: 1; text-align: center;
         }
 
-        /* --- HIGH SCORE TABLE --- */
         #leaderboard-container {
             width: 100%; max-width: 450px; background: rgba(255,255,255,0.2);
             border-radius: 15px; padding: 10px; margin-bottom: 10px; color: var(--purple);
@@ -68,6 +67,13 @@
             background: #eee; border-radius: 12px; overflow: hidden;
             position: relative; border: 3px solid var(--black);
         }
+        /* ADDED: Visual depth gradient for wheels */
+        .wheel-window::after {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, transparent 25%, transparent 75%, rgba(0,0,0,0.15) 100%);
+            pointer-events: none;
+        }
+
         .wheel-strip { display: flex; flex-direction: column; }
         .letter-cell {
             height: 55px; width: 100%; display: flex; align-items: center; 
@@ -109,8 +115,17 @@
         #msg-box { min-height: 55px; margin: 10px 0; font-weight: 800; color: var(--purple); font-size: 0.9rem; display: flex; align-items: center; justify-content: center; }
         .hidden { display: none !important; }
         
-        .victory-text { font-size: 1.3rem; line-height: 1.3; color: var(--purple); margin: 20px 0; font-weight: 900; }
-        .final-score { font-size: 1.1rem; color: var(--blue); margin-bottom: 20px; font-weight: 800; }
+        /* --- VICTORY UI STYLES --- */
+        .victory-text { font-size: 1.3rem; line-height: 1.3; color: var(--purple); margin: 10px 0; font-weight: 900; }
+        .book-promo-container { display: flex; flex-direction: column; align-items: center; gap: 15px; margin: 20px 0; }
+        .book-link img { width: 180px; border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); transition: transform 0.3s; }
+        .book-link img:hover { transform: scale(1.05); }
+        
+        .promo-box {
+            background: var(--yellow); color: var(--purple);
+            padding: 15px; border-radius: 15px; border: 2px solid var(--purple);
+            font-weight: 800; font-size: 0.95rem; line-height: 1.4;
+        }
     </style>
 </head>
 <body>
@@ -155,9 +170,18 @@
                     <button id="btn-reveal-action" class="btn-reveal" onclick="reveal()">REVEAL ANSWER</button>
                 </div>
             </div>
+
             <div id="victory-ui" class="hidden">
                 <p class="victory-text">CONGRATULATIONS!<br>YOU ARE THE WORD WHEEL MASTER!</p>
-                <p class="final-score" id="finish-time-display"></p>
+                <div class="book-promo-container">
+                    <a href="https://www.waterstones.com/book/ham-ed-and-chips/tom-phipps/9780722356852" target="_blank" class="book-link">
+                        <img src="https://github.com/cuppatom99/word-wheel/blob/main/HEC-click-to-get-you-copy-cover-image.png?raw=true" alt="Ham Ed and Chips Book Cover">
+                    </a>
+                    <div class="promo-box">
+                        Now that you are a winner, be a champ and buy a copy of this <i>wheely</i> good book!
+                    </div>
+                </div>
+                <p id="finish-time-display" style="font-weight: 900; color: var(--blue);"></p>
                 <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple);" onclick="location.reload()">PLAY AGAIN</button>
             </div>
         </div>
@@ -241,7 +265,7 @@
 
     function saveScore(ms) {
         let scores = JSON.parse(localStorage.getItem('wordWheelLeaderboard') || '[]');
-        const isHighScore = scores.length < 5 || ms < scores[scores.length - 1].time;
+        const isHighScore = scores.length < 5 || ms < (scores.length ? scores[scores.length - 1].time : Infinity);
         
         let playerName = "Player";
         if (isHighScore) {
@@ -361,7 +385,7 @@
                 else { 
                     clearInterval(timerInterval);
                     const elapsed = Date.now() - startTime;
-                    document.getElementById('finish-time-display').innerText = `YOU COMPLETED THE WORD WHEEL IN ${formatTime(elapsed)}`;
+                    document.getElementById('finish-time-display').innerText = `FINISHED IN ${formatTime(elapsed)}`;
                     document.getElementById('main-ui').classList.add('hidden');
                     document.getElementById('victory-ui').classList.remove('hidden');
                     playSound('victory');
@@ -375,6 +399,7 @@
     }
 
     function giveClue() {
+        // Corrected logic: subtract from startTime so elapsed time (Now - Start) increases
         startTime -= 10000;
         const col = Math.floor(Math.random() * wordLen);
         const oldOffset = offsets[col];
