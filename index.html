@@ -25,19 +25,12 @@
             box-shadow: 0 15px 35px rgba(0,0,0,0.2);
         }
 
-        /* --- TITLE --- */
-        .title-container { margin-bottom: 20px; }
-        .title-row { display: flex; justify-content: center; gap: 5px; }
         .title-letter {
             font-size: 2.5rem; font-weight: 900; color: var(--purple);
-            text-shadow: 3px 3px 0 var(--yellow);
+            text-shadow: 3px 3px 0 var(--yellow); display: inline-block; margin: 0 2px;
         }
 
-        /* --- WHEEL AREA --- */
-        .game-grid { 
-            display: flex; justify-content: center; gap: 8px; 
-            margin: 20px 0; overflow-x: auto; padding-bottom: 10px;
-        }
+        .game-grid { display: flex; justify-content: center; gap: 8px; margin: 20px 0; }
         .column-group { display: flex; flex-direction: column; align-items: center; gap: 10px; }
         
         .wheel-window {
@@ -47,16 +40,15 @@
         }
         .wheel-strip {
             display: flex; flex-direction: column;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .letter-cell {
             height: 55px; width: 100%; display: flex; align-items: center; 
             justify-content: center; font-size: 1.8rem; font-weight: 900;
             background: white; border-bottom: 1px solid #eee; color: var(--purple);
         }
-        .letter-cell.correct { background: var(--green); color: var(--purple); }
+        .letter-cell.correct { background: var(--green); }
 
-        /* --- CONTROLS --- */
         .arrow-stack { display: flex; flex-direction: column; gap: 4px; width: 100%; }
         .arrow-btn {
             background: var(--grey); border: 2px solid var(--black);
@@ -65,7 +57,6 @@
         }
         .arrow-btn:active { transform: translateY(2px); box-shadow: none; }
 
-        /* --- BUTTON LAYOUT --- */
         .button-stack { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
         .row-split { display: flex; gap: 10px; }
         
@@ -76,7 +67,6 @@
         }
         .action-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--black); }
         
-        /* Specific Button Styles */
         .btn-submit { background: var(--blue); color: white; width: 100%; }
         .btn-clue { background: var(--yellow); flex: 1; }
         .btn-shuffle { background: var(--white); flex: 1; }
@@ -84,9 +74,8 @@
         .btn-reveal {
             background: var(--light-grey); color: #888; border: none;
             box-shadow: none; font-size: 0.9rem; padding: 10px;
-            width: 100%; margin-top: 5px;
+            width: 100%; margin-top: 5px; border-radius: 10px;
         }
-        .btn-reveal:active { transform: scale(0.98); }
 
         #msg-box { min-height: 25px; margin: 10px 0; font-weight: bold; color: var(--purple); }
         .hidden { display: none !important; }
@@ -95,38 +84,70 @@
 <body>
 
     <div id="splash">
-        <div class="title-container">
-            <div class="title-row" id="title-1"></div>
-            <div class="title-row" id="title-2"></div>
+        <div style="margin-bottom: 20px;">
+            <div id="title-1"></div>
+            <div id="title-2"></div>
         </div>
         <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple);" onclick="startGame()">PLAY NOW</button>
     </div>
 
-    <div id="loading" class="hidden" style="color: white; font-weight: 900; margin-top: 50px;">FETCHING WORDS...</div>
+    <div id="loading" class="hidden" style="color: white; font-weight: 900; margin-top: 50px;">LOADING...</div>
 
     <div id="game-area" class="game-card hidden">
         <div style="display: flex; justify-content: space-between; font-weight: 900; margin-bottom: 10px;">
             <span>LEVEL: <span id="lvl-num">1</span></span>
             <span>STREAK: <span id="streak-num">0</span></span>
         </div>
-
         <div class="game-grid" id="main-grid"></div>
-
-        <div id="msg-box">Align the wheels!</div>
-
+        <div id="msg-box">Find the words!</div>
         <div class="button-stack">
             <button class="action-btn btn-submit" onclick="checkSolution()">SUBMIT WORD</button>
-            
             <div class="row-split">
                 <button class="action-btn btn-clue" onclick="giveClue()">CLUE</button>
                 <button class="action-btn btn-shuffle" onclick="shuffleWheels()">SHUFFLE</button>
             </div>
-
             <button class="btn-reveal" onclick="reveal()">Reveal Answer</button>
         </div>
     </div>
 
 <script>
+    // --- AUDIO SYSTEM (NES STYLE) ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square'; // Classic NES square wave
+
+        if (type === 'click') {
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        } else if (type === 'success') {
+            [440, 554, 659, 880].forEach((f, i) => {
+                const o = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                o.type = 'square';
+                o.frequency.setValueAtTime(f, audioCtx.currentTime + i * 0.1);
+                g.gain.setValueAtTime(0.1, audioCtx.currentTime + i * 0.1);
+                g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + i * 0.1 + 0.1);
+                o.connect(g); g.connect(audioCtx.destination);
+                o.start(audioCtx.currentTime + i * 0.1); o.stop(audioCtx.currentTime + i * 0.1 + 0.1);
+            });
+        } else if (type === 'error') {
+            osc.frequency.setValueAtTime(110, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(70, audioCtx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+        osc.connect(gain); gain.connect(audioCtx.destination);
+    }
+
+    // --- GAME LOGIC ---
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     let targets = [], wheels = [], offsets = [];
     let currentLvl = 1, wordLen = 3, streak = 0;
@@ -140,6 +161,7 @@
     initTitle();
 
     async function startGame() {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
         document.getElementById('splash').classList.add('hidden');
         await loadLevel();
     }
@@ -149,17 +171,15 @@
         document.getElementById('loading').classList.remove('hidden');
         
         try {
-            const res = await fetch(`https://api.datamuse.com/words?sp=${'?'.repeat(wordLen)}&md=d&max=100`);
+            const res = await fetch(`https://api.datamuse.com/words?sp=${'?'.repeat(wordLen)}&md=d&max=80`);
             const data = await res.json();
             const valid = data.filter(w => /^[a-z]+$/.test(w.word));
-            
-            // Pick two different words
+            if(valid.length < 2) throw "Not enough words";
             let idx1 = Math.floor(Math.random() * valid.length);
             let idx2 = (idx1 + 1) % valid.length;
-
             targets = [valid[idx1].word.toUpperCase(), valid[idx2].word.toUpperCase()];
         } catch (e) {
-            targets = [wordLen === 3 ? "CAT" : "PLANT", wordLen === 3 ? "DOG" : "TREES"];
+            targets = [wordLen === 3 ? "CAT" : "POWER", wordLen === 3 ? "DOG" : "LIGHT"];
         }
 
         buildGrid();
@@ -167,8 +187,6 @@
         document.getElementById('game-area').classList.remove('hidden');
         document.getElementById('lvl-num').innerText = currentLvl;
         document.getElementById('streak-num').innerText = streak;
-        document.getElementById('msg-box').innerText = "Find two " + wordLen + "-letter words!";
-        document.getElementById('msg-box').style.color = "var(--purple)";
     }
 
     function buildGrid() {
@@ -188,54 +206,39 @@
 
             const group = document.createElement('div');
             group.className = 'column-group';
+            group.innerHTML = `
+                <div class="wheel-window"><div class="wheel-strip" id="strip-${i}"></div></div>
+                <div class="arrow-stack">
+                    <button class="arrow-btn" onclick="spin(${i}, -1)">▲</button>
+                    <button class="arrow-btn" onclick="spin(${i}, 1)">▼</button>
+                </div>`;
+            grid.appendChild(group);
 
-            const win = document.createElement('div');
-            win.className = 'wheel-window';
-            const strip = document.createElement('div');
-            strip.className = 'wheel-strip';
-            strip.id = `strip-${i}`;
-
-            // Triple the array for scrolling
+            const strip = document.getElementById(`strip-${i}`);
             [...chars, ...chars, ...chars].forEach(char => {
                 const cell = document.createElement('div');
-                cell.className = 'letter-cell';
-                cell.innerText = char;
+                cell.className = 'letter-cell'; cell.innerText = char;
                 strip.appendChild(cell);
             });
-
-            win.appendChild(strip);
-            group.appendChild(win);
-
-            const arrows = document.createElement('div');
-            arrows.className = 'arrow-stack';
-            const up = document.createElement('button');
-            up.className = 'arrow-btn'; up.innerText = '▲';
-            up.onclick = () => spin(i, -1);
-            const down = document.createElement('button');
-            down.className = 'arrow-btn'; down.innerText = '▼';
-            down.onclick = () => spin(i, 1);
-            
-            arrows.appendChild(up);
-            arrows.appendChild(down);
-            group.appendChild(arrows);
-            grid.appendChild(group);
             updateStrip(i);
         }
-        shuffleWheels(); // Initial shuffle
+        shuffleWheels(false);
     }
 
     function spin(i, dir) {
-        offsets[i] += dir;
+        playSound('click');
+        offsets[i] = (offsets[i] + dir + 8) % 8;
         updateStrip(i);
     }
 
     function updateStrip(i) {
         const strip = document.getElementById(`strip-${i}`);
-        const y = (offsets[i] + 8) * 55; // Offset by second set
+        const y = (offsets[i] + 8) * 55;
         strip.style.transform = `translateY(-${y}px)`;
     }
 
-    function shuffleWheels() {
+    function shuffleWheels(playSnd = true) {
+        if(playSnd) playSound('click');
         for(let i=0; i<wordLen; i++) {
             offsets[i] = Math.floor(Math.random() * 8);
             updateStrip(i);
@@ -244,12 +247,10 @@
 
     function getCharAtPos(colIndex, rowIndex) {
         let actualIndex = (offsets[colIndex] + rowIndex) % 8;
-        if (actualIndex < 0) actualIndex += 8;
         return wheels[colIndex][actualIndex];
     }
 
     function giveClue() {
-        // Find columns that aren't already correct
         let wrongIndices = [];
         for(let i=0; i<wordLen; i++) {
             if(getCharAtPos(i, 0) !== targets[0][i] || getCharAtPos(i, 1) !== targets[1][i]) {
@@ -258,13 +259,14 @@
         }
 
         if(wrongIndices.length > 0) {
-            let i = wrongIndices[Math.floor(Math.random() * wrongIndices.length)];
-            // Rotate until it matches targets
-            while(getCharAtPos(i, 0) !== targets[0][i] || getCharAtPos(i, 1) !== targets[1][i]) {
-                offsets[i]++;
+            playSound('click');
+            let col = wrongIndices[Math.floor(Math.random() * wrongIndices.length)];
+            // Safely find the alignment
+            for(let attempt = 0; attempt < 8; attempt++) {
+                if(getCharAtPos(col, 0) === targets[0][col] && getCharAtPos(col, 1) === targets[1][col]) break;
+                offsets[col] = (offsets[col] + 1) % 8;
             }
-            updateStrip(i);
-            document.getElementById('msg-box').innerText = "Letter revealed!";
+            updateStrip(col);
         }
     }
 
@@ -276,29 +278,28 @@
         }
 
         if(w1 === targets[0] && w2 === targets[1]) {
+            playSound('success');
             document.querySelectorAll('.letter-cell').forEach(c => c.classList.add('correct'));
-            document.getElementById('msg-box').innerText = "CORRECT!";
             streak++;
             setTimeout(() => {
-                if(wordLen < 7) {
-                    currentLvl++; if(currentLvl % 2 === 0) wordLen++; 
-                    loadLevel();
-                } else {
-                    alert("YOU ARE THE WORD MASTER!");
-                    location.reload();
-                }
+                currentLvl++; 
+                if(currentLvl % 2 === 0 && wordLen < 6) wordLen++;
+                loadLevel();
             }, 1200);
         } else {
-            document.getElementById('msg-box').innerText = "TRY AGAIN";
-            document.getElementById('msg-box').style.color = "red";
+            playSound('error');
+            document.getElementById('msg-box').innerText = "TRY AGAIN!";
+            setTimeout(() => { document.getElementById('msg-box').innerText = "Find the words!"; }, 1000);
         }
     }
 
     function reveal() {
+        playSound('click');
         streak = 0;
         for(let i=0; i<wordLen; i++) {
-            while(getCharAtPos(i, 0) !== targets[0][i] || getCharAtPos(i, 1) !== targets[1][i]) {
-                offsets[i]++;
+            for(let attempt = 0; attempt < 8; attempt++) {
+                if(getCharAtPos(i, 0) === targets[0][i] && getCharAtPos(i, 1) === targets[1][i]) break;
+                offsets[i] = (offsets[i] + 1) % 8;
             }
             updateStrip(i);
         }
