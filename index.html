@@ -14,7 +14,7 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
         
         body {
-            margin: 0; padding: 40px 15px; background: var(--orange); /* Added space at top */
+            margin: 0; padding: 60px 15px 20px 15px; background: var(--orange);
             font-family: 'Segoe UI', Roboto, sans-serif;
             display: flex; flex-direction: column; align-items: center; min-height: 100vh;
         }
@@ -26,6 +26,7 @@
             position: relative;
         }
 
+        /* --- TITLE --- */
         .title-letter {
             font-size: 2.8rem; font-weight: 900; color: var(--purple);
             text-shadow: 3px 3px 0 var(--yellow); display: inline-block;
@@ -36,54 +37,78 @@
             100% { opacity: 1; transform: scale(1) translateY(0); }
         }
 
+        /* --- WHEELS --- */
         .game-grid { display: flex; justify-content: center; gap: 8px; margin: 20px 0; }
         .column-group { display: flex; flex-direction: column; align-items: center; gap: 10px; }
         
         .wheel-window {
-            width: clamp(45px, 15vw, 60px); height: 110px; 
+            width: clamp(45px, 14vw, 60px); height: 110px; 
             background: #eee; border-radius: 12px; overflow: hidden;
             position: relative; border: 3px solid var(--black);
         }
-        .wheel-strip {
-            display: flex; flex-direction: column;
-            /* Transition is handled via JS to allow "instant" snaps for looping */
-        }
+        .wheel-strip { display: flex; flex-direction: column; }
         .letter-cell {
             height: 55px; width: 100%; display: flex; align-items: center; 
             justify-content: center; font-size: 1.8rem; font-weight: 900;
             background: white; border-bottom: 1px solid #ddd; color: var(--purple);
+            position: relative;
         }
-        .letter-cell.correct { background: var(--green) !important; }
 
+        /* --- SPARKLE EFFECT --- */
+        .letter-cell.correct { 
+            background: var(--green) !important; 
+            animation: sparklePulse 0.4s ease infinite alternate;
+        }
+        .letter-cell.correct::after {
+            content: '✨';
+            position: absolute;
+            font-size: 1.2rem;
+            animation: floatSparkle 0.6s ease-out forwards;
+        }
+        @keyframes sparklePulse {
+            from { box-shadow: inset 0 0 0px var(--yellow); }
+            to { box-shadow: inset 0 0 15px var(--yellow); transform: scale(1.05); }
+        }
+        @keyframes floatSparkle {
+            0% { opacity: 0; transform: translate(0,0) scale(0.5); }
+            50% { opacity: 1; }
+            100% { opacity: 0; transform: translate(10px, -20px) scale(1.2); }
+        }
+
+        /* --- BUTTONS --- */
         .arrow-stack { display: flex; flex-direction: column; gap: 5px; width: 100%; }
         .arrow-btn {
             background: var(--grey); border: 2px solid var(--black);
             border-radius: 8px; cursor: pointer; font-size: 1.2rem;
-            height: 40px; box-shadow: 0 3px 0 var(--black);
+            height: 40px; box-shadow: 0 3px 0 var(--black); transition: 0.05s;
         }
-        .arrow-btn:active { transform: translateY(2px); box-shadow: none; }
+        .arrow-btn:active, .action-btn:active { 
+            background: var(--yellow) !important; 
+            color: var(--purple) !important;
+            transform: translateY(3px); 
+            box-shadow: none !important; 
+        }
 
         .button-stack { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-        .row-split { display: flex; gap: 10px; }
+        .row-split { display: flex; gap: 8px; }
         
         .action-btn {
-            padding: 15px; border-radius: 15px; border: 3px solid var(--black);
-            font-weight: 900; font-size: 1.1rem; cursor: pointer;
-            box-shadow: 0 5px 0 var(--black); transition: 0.1s;
+            padding: 15px 5px; border-radius: 15px; border: 3px solid var(--black);
+            font-weight: 900; font-size: 1rem; cursor: pointer;
+            box-shadow: 0 5px 0 var(--black); transition: 0.05s;
         }
-        .action-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--black); }
         
         .btn-submit { background: var(--blue); color: white; width: 100%; }
-        .btn-clue { background: var(--yellow); flex: 1; color: var(--purple); }
-        .btn-shuffle { background: var(--white); flex: 1; }
+        .btn-white { background: var(--white); color: var(--black); flex: 1; }
         
         .btn-reveal {
             background: var(--light-grey); color: #999; border: none;
             box-shadow: none; font-size: 0.9rem; padding: 12px;
-            width: 100%; margin-top: 5px; border-radius: 10px; font-weight: bold;
+            width: 100%; margin-top: 5px; border-radius: 10px; font-weight: bold; cursor: pointer;
         }
+        .btn-reveal:active { background: var(--yellow); color: var(--purple); }
 
-        #msg-box { min-height: 40px; margin: 10px 0; font-weight: 800; color: var(--purple); }
+        #msg-box { min-height: 55px; margin: 10px 0; font-weight: 800; color: var(--purple); font-size: 0.9rem; line-height: 1.2; display: flex; align-items: center; justify-content: center; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -92,7 +117,8 @@
     <div class="game-card">
         <div id="splash">
             <div id="title-1"></div><div id="title-2"></div>
-            <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple); margin-top: 20px;" onclick="initGame()">PLAY NOW</button>
+            <p style="color: var(--purple); font-weight: bold; margin-top: 15px;">Spin the Word Wheel and find the words!</p>
+            <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple); margin-top: 10px;" onclick="initGame()">PLAY NOW</button>
         </div>
 
         <div id="game-area" class="hidden">
@@ -101,12 +127,14 @@
                 <span>STREAK: <span id="streak-num">0</span></span>
             </div>
             <div class="game-grid" id="main-grid"></div>
-            <div id="msg-box">Find the words!</div>
+            <div id="msg-box">Spin the Word Wheel and find the words!</div>
+            
             <div class="button-stack">
                 <button class="action-btn btn-submit" onclick="checkSolution()">SUBMIT</button>
                 <div class="row-split">
-                    <button class="action-btn btn-clue" onclick="giveClue()">CLUE</button>
-                    <button class="action-btn btn-shuffle" onclick="shuffleWheels()">SHUFFLE</button>
+                    <button class="action-btn btn-white" onclick="giveClue()">CLUE</button>
+                    <button class="action-btn btn-white" onclick="giveDefinition()">DEFINE</button>
+                    <button class="action-btn btn-white" onclick="shuffleWheels()">SHUFFLE</button>
                 </div>
                 <button class="btn-reveal" onclick="reveal()">REVEAL ANSWER</button>
             </div>
@@ -114,15 +142,37 @@
     </div>
 
 <script>
-    // --- DICTIONARY ---
-    const words = {
-        3: ["CAT", "DOG", "SUN", "BOX", "SKY", "PEN", "CUP", "BAT", "FLY", "HAT", "ICE", "JAM", "KEY", "MAP", "NET", "OIL", "PIG", "RUN", "SIT", "TOP", "VAN", "WEB", "YES", "ZOO", "ARM", "BED", "CAR", "DAY", "EGG", "FAN", "GUM", "HOT", "INK", "JET", "KID", "LEG", "MUD", "NAP", "OWL", "POT", "RAT", "SAW", "TEA", "USE", "VOW", "WET", "YAK", "ZIP", "OLD", "NEW"],
-        4: ["BLUE", "FISH", "WIND", "RAIN", "GOLF", "CLUB", "FIRE", "SNOW", "MOON", "STAR", "TREE", "BIRD", "FROG", "LAKE", "BOAT", "COAT", "DUCK", "EARL", "FAST", "GATE", "HAND", "IRON", "JUMP", "KING", "LAMP", "MILK", "NEST", "OPEN", "PARK", "QUIT", "ROAD", "SHIP", "TENT", "UNIT", "VEST", "WAVE", "YARD", "ZERO", "ABLE", "BEAR", "COLD", "DARK", "EXIT", "FOOD", "GOLD", "HELP", "INCH", "JUNE", "KITE", "LION"],
-        5: ["APPLE", "SWEET", "BREAD", "TOAST", "LIGHT", "POWER", "SMILE", "WATER", "HOUSE", "MUSIC", "PIANO", "OCEAN", "FRUIT", "CLOCK", "TABLE", "CHAIR", "DREAM", "EARTH", "FLAME", "GLASS", "HEART", "IMAGE", "JUICE", "KNIFE", "LEMON", "MOUSE", "NIGHT", "PARTY", "QUEEN", "RIVER", "SNAKE", "TRAIN", "UNDER", "VOICE", "WHALE", "YACHT", "ZEBRA", "ALIVE", "BRAIN", "CANDY", "DANCE", "EVERY", "FIELD", "GRASS", "HAPPY", "INDEX", "JOKER", "KOALA", "LUCKY", "MAGIC"],
-        6: ["ORANGE", "BOTTLE", "WINDOW", "COFFEE", "PLANET", "SILVER", "YELLOW", "BRIDGE", "CAMERA", "DANGER", "ENERGY", "FLOWER", "GARDEN", "HAMMER", "ISLAND", "JACKET", "KETTLE", "LIZARD", "MARKET", "NUMBER", "OFFICE", "PENCIL", "QUARTZ", "ROCKET", "SCHOOL", "TICKET", "UPWARD", "VALLEY", "WIZARD", "ZODIAC", "ANIMAL", "BANANA", "CHURCH", "DOLLAR", "ENGINE", "FATHER", "GUITAR", "HOCKEY", "INSECT", "JUNGLE", "KITTEN", "LETTER", "MOTHER", "NATURE", "OXYGEN", "PLAYER", "RABBIT", "STREET", "TAYLOR", "WINTER"]
+    const commonWords = {
+        3: [
+            {w: "CAT", d: "A small furry pet that meows"}, {w: "DOG", d: "Man's best friend that barks"},
+            {w: "SUN", d: "The big yellow star in the sky"}, {w: "BOX", d: "Something used to hold or ship items"},
+            {w: "SKY", d: "Where the clouds and birds are"}, {w: "PEN", d: "A tool used for writing with ink"},
+            {w: "CUP", d: "Something you drink water or tea from"}, {w: "BAT", d: "Used in baseball or flies at night"},
+            {w: "HAT", d: "Something you wear on your head"}, {w: "ICE", d: "Frozen water used to cool drinks"}
+        ],
+        4: [
+            {w: "BLUE", d: "The color of the ocean or sky"}, {w: "FISH", d: "An animal that swims in water"},
+            {w: "WIND", d: "Moving air that blows the trees"}, {w: "RAIN", d: "Water falling from the clouds"},
+            {w: "FIRE", d: "Something hot that produces smoke"}, {w: "SNOW", d: "Cold white flakes in winter"},
+            {w: "MOON", d: "The glowing object in the night sky"}, {w: "STAR", d: "A tiny twinkling light in space"},
+            {w: "TREE", d: "A tall plant with leaves and a trunk"}, {w: "BIRD", d: "An animal with wings that flies"}
+        ],
+        5: [
+            {w: "APPLE", d: "A round red or green fruit"}, {w: "BREAD", d: "Food used to make sandwiches"},
+            {w: "WATER", d: "Clear liquid we need to drink"}, {w: "HOUSE", d: "A building where people live"},
+            {w: "MUSIC", d: "Sounds played on instruments"}, {w: "CLOCK", d: "A device that tells the time"},
+            {w: "TABLE", d: "Furniture used for eating or working"}, {w: "HEART", d: "The part of the body that pumps blood"},
+            {w: "PIANO", d: "A musical instrument with black and white keys"}, {w: "SMILE", d: "What you do when you are happy"}
+        ],
+        6: [
+            {w: "ORANGE", d: "A citrus fruit or a bright color"}, {w: "BOTTLE", d: "A container for holding liquids"},
+            {w: "WINDOW", d: "A glass opening in a wall"}, {w: "COFFEE", d: "A dark morning drink with caffeine"},
+            {w: "PLANET", d: "A large object like Earth or Mars"}, {w: "FLOWER", d: "A colorful part of a plant"},
+            {w: "GARDEN", d: "A place where flowers and veggies grow"}, {w: "CAMERA", d: "A device used to take pictures"},
+            {w: "SCHOOL", d: "A place where children go to learn"}, {w: "WINTER", d: "The coldest season of the year"}
+        ]
     };
 
-    // --- AUDIO ---
     let audioCtx;
     function playSound(type) {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -148,8 +198,7 @@
         osc.connect(gain); gain.connect(audioCtx.destination);
     }
 
-    // --- LOGIC ---
-    let targets = [], wheels = [], offsets = [];
+    let targets = [], wheelData = [], wheels = [], offsets = [];
     let currentLvl = 1, wordLen = 3, streak = 0;
 
     function initTitle() {
@@ -166,23 +215,26 @@
     }
 
     function loadLevel() {
-        const list = words[wordLen];
-        let w1 = list[Math.floor(Math.random()*list.length)];
-        let w2 = list[Math.floor(Math.random()*list.length)];
-        while(w1 === w2) w2 = list[Math.floor(Math.random()*list.length)];
-        targets = [w1, w2];
+        const list = commonWords[wordLen];
+        let d1 = list[Math.floor(Math.random()*list.length)];
+        let d2 = list[Math.floor(Math.random()*list.length)];
+        while(d1.w === d2.w) d2 = list[Math.floor(Math.random()*list.length)];
+        wheelData = [d1, d2];
+        targets = [d1.w, d2.w];
         
         buildWheels();
         document.getElementById('game-area').classList.remove('hidden');
         document.getElementById('lvl-num').innerText = currentLvl;
         document.getElementById('streak-num').innerText = streak;
+        document.getElementById('msg-box').innerText = "Spin the Word Wheel and find the words!";
+        document.getElementById('msg-box').style.color = "var(--purple)";
     }
 
     function buildWheels() {
         const grid = document.getElementById('main-grid');
         grid.innerHTML = "";
         wheels = [];
-        offsets = new Array(wordLen).fill(8); // Start at the middle set
+        offsets = new Array(wordLen).fill(8);
 
         for(let i=0; i<wordLen; i++) {
             let wheelChars = [targets[0][i], targets[1][i]];
@@ -195,8 +247,7 @@
 
             const group = document.createElement('div');
             group.className = 'column-group';
-            group.innerHTML = `
-                <div class="wheel-window"><div class="wheel-strip" id="strip-${i}"></div></div>
+            group.innerHTML = `<div class="wheel-window"><div class="wheel-strip" id="strip-${i}"></div></div>
                 <div class="arrow-stack">
                     <button class="arrow-btn" onclick="spin(${i}, -1)">▲</button>
                     <button class="arrow-btn" onclick="spin(${i}, 1)">▼</button>
@@ -204,7 +255,6 @@
             grid.appendChild(group);
 
             const strip = document.getElementById(`strip-${i}`);
-            // 5 sets of letters for extreme looping buffer
             [...wheelChars, ...wheelChars, ...wheelChars, ...wheelChars, ...wheelChars].forEach(char => {
                 const cell = document.createElement('div');
                 cell.className = 'letter-cell'; cell.innerText = char;
@@ -219,11 +269,9 @@
         playSound('spin');
         offsets[i] += dir;
         updateStrip(i, true);
-
-        // Infinite Loop Magic: If we move too far, snap back to the middle set instantly
         setTimeout(() => {
             if (offsets[i] < 8 || offsets[i] >= 16) {
-                offsets[i] = (offsets[i] % 8) + 8;
+                offsets[i] = ((offsets[i] % 8) + 8);
                 updateStrip(i, false);
             }
         }, 200);
@@ -249,11 +297,24 @@
     }
 
     function giveClue() {
+        playSound('spin');
         const col = Math.floor(Math.random() * wordLen);
         const char = targets[0][col];
         const msg = document.getElementById('msg-box');
         msg.innerText = `HINT: Wheel ${col+1} top is '${char}'`;
-        setTimeout(() => { msg.innerText = "Find the words!"; }, 5000);
+        setTimeout(() => { 
+            if(msg.innerText.includes("HINT")) msg.innerText = "Spin the Word Wheel and find the words!"; 
+        }, 5000);
+    }
+
+    function giveDefinition() {
+        playSound('spin');
+        const wordIdx = Math.floor(Math.random() * 2);
+        const msg = document.getElementById('msg-box');
+        msg.innerText = `DEFINE: ${wheelData[wordIdx].d}`;
+        setTimeout(() => { 
+            if(msg.innerText.includes("DEFINE")) msg.innerText = "Spin the Word Wheel and find the words!"; 
+        }, 7000);
     }
 
     function checkSolution() {
@@ -265,29 +326,48 @@
 
         if(w1 === targets[0] && w2 === targets[1]) {
             playSound('cheer');
-            document.querySelectorAll('.letter-cell').forEach(c => c.classList.add('correct'));
+            
+            // Trigger sparkle animation class
+            document.querySelectorAll('.letter-cell').forEach((c, idx) => {
+                const col = Math.floor(idx / 40); // 40 cells per strip (5 sets of 8)
+                const innerIdx = idx % 40;
+                
+                // Only animate the visible cells (Top and Bottom row in middle set)
+                if(innerIdx === (offsets[col]) || innerIdx === (offsets[col] + 1)) {
+                    c.classList.add('correct');
+                }
+            });
+
             streak++;
             setTimeout(() => {
                 currentLvl++; 
                 if(currentLvl % 2 === 0 && wordLen < 6) wordLen++;
                 loadLevel();
-            }, 1500);
+            }, 1800);
         } else {
-            document.getElementById('msg-box').innerText = "NOT YET!";
-            setTimeout(() => { document.getElementById('msg-box').innerText = "Find the words!"; }, 1500);
+            const msg = document.getElementById('msg-box');
+            msg.innerText = "NOT QUITE!";
+            msg.style.color = "red";
+            setTimeout(() => { msg.innerText = "Spin the Word Wheel and find the words!"; msg.style.color = "var(--purple)"; }, 1500);
         }
     }
 
     function reveal() {
         streak = 0; currentLvl = 1; wordLen = 3;
         for(let i=0; i<wordLen; i++) {
-            while(getCharAtPos(i, 0) !== targets[0][i] || getCharAtPos(i, 1) !== targets[1][i]) {
-                offsets[i]++;
+            const wheel = wheels[i];
+            let targetIdx = -1;
+            for(let j=0; j<8; j++) {
+                if(wheel[j] === targets[0][i] && wheel[(j+1)%8] === targets[1][i]) {
+                    targetIdx = j;
+                    break;
+                }
             }
+            offsets[i] = 8 + targetIdx;
             updateStrip(i, true);
         }
-        document.getElementById('msg-box').innerText = "RESETTING...";
-        setTimeout(loadLevel, 2000);
+        document.getElementById('msg-box').innerText = "REVEALED - RETURNING TO LVL 1";
+        setTimeout(loadLevel, 2500);
     }
 </script>
 </body>
