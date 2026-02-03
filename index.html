@@ -34,9 +34,14 @@
         #leaderboard-container {
             width: 100%; max-width: 450px; background: rgba(255,255,255,0.2);
             border-radius: 15px; padding: 10px; margin-bottom: 10px; color: var(--purple);
+            position: relative;
         }
         .score-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; font-weight: bold; }
         .score-table th { text-align: left; border-bottom: 1px solid var(--purple); padding-bottom: 3px; }
+        .reset-scores { 
+            font-size: 0.6rem; cursor: pointer; text-decoration: underline; 
+            display: block; text-align: right; margin-top: 5px; opacity: 0.7;
+        }
 
         .game-card {
             background: var(--white); width: 100%; max-width: 450px;
@@ -119,9 +124,10 @@
 
     <div id="leaderboard-container" class="hidden">
         <table class="score-table" id="high-score-list">
-            <thead><tr><th>Rank</th><th>Word Wheel High Scores</th><th>Time</th></tr></thead>
+            <thead><tr><th>Rank</th><th>Word Wheel Hall of Fame</th><th>Time</th></tr></thead>
             <tbody></tbody>
         </table>
+        <span class="reset-scores" onclick="resetLeaderboard()">Clear Scores</span>
     </div>
 
     <div class="game-card">
@@ -166,7 +172,7 @@
     };
 
     let audioCtx, targets = [], wheels = [], offsets = [];
-    let wordLen = 3, currentLevelIndex = 1, streak = 0, finalTimeFormatted = "";
+    let wordLen = 3, currentLevelIndex = 1, streak = 0;
     let soundEnabled = true, startTime, timerInterval;
 
     function toggleSound() {
@@ -222,21 +228,37 @@
     }
 
     function updateLeaderboard() {
-        const scores = JSON.parse(localStorage.getItem('wordWheelScores') || '[]');
+        const scores = JSON.parse(localStorage.getItem('wordWheelLeaderboard') || '[]');
         const tbody = document.querySelector('#high-score-list tbody');
         tbody.innerHTML = '';
         scores.slice(0, 5).forEach((s, i) => {
-            const row = `<tr><td>#${i+1}</td><td>Player</td><td>${formatTime(s)}</td></tr>`;
+            const row = `<tr><td>#${i+1}</td><td>${s.name}</td><td>${formatTime(s.time)}</td></tr>`;
             tbody.innerHTML += row;
         });
         if(scores.length > 0) document.getElementById('leaderboard-container').classList.remove('hidden');
+        else document.getElementById('leaderboard-container').classList.add('hidden');
     }
 
     function saveScore(ms) {
-        let scores = JSON.parse(localStorage.getItem('wordWheelScores') || '[]');
-        scores.push(ms);
-        scores.sort((a, b) => a - b);
-        localStorage.setItem('wordWheelScores', JSON.stringify(scores));
+        let scores = JSON.parse(localStorage.getItem('wordWheelLeaderboard') || '[]');
+        const isHighScore = scores.length < 5 || ms < scores[scores.length - 1].time;
+        
+        let playerName = "Player";
+        if (isHighScore) {
+            playerName = prompt("New High Score! Enter your name:", "Player") || "Player";
+        }
+        
+        scores.push({ name: playerName.substring(0, 12), time: ms });
+        scores.sort((a, b) => a.time - b.time);
+        localStorage.setItem('wordWheelLeaderboard', JSON.stringify(scores.slice(0, 10)));
+        updateLeaderboard();
+    }
+
+    function resetLeaderboard() {
+        if(confirm("Are you sure you want to clear the high scores?")) {
+            localStorage.removeItem('wordWheelLeaderboard');
+            updateLeaderboard();
+        }
     }
 
     function initTitle() {
@@ -339,11 +361,11 @@
                 else { 
                     clearInterval(timerInterval);
                     const elapsed = Date.now() - startTime;
-                    saveScore(elapsed);
                     document.getElementById('finish-time-display').innerText = `YOU COMPLETED THE WORD WHEEL IN ${formatTime(elapsed)}`;
                     document.getElementById('main-ui').classList.add('hidden');
                     document.getElementById('victory-ui').classList.remove('hidden');
                     playSound('victory');
+                    saveScore(elapsed);
                 }
             }, 1800);
         } else {
@@ -353,7 +375,7 @@
     }
 
     function giveClue() {
-        startTime -= 10000; // Add 10 seconds penalty
+        startTime -= 10000;
         const col = Math.floor(Math.random() * wordLen);
         const oldOffset = offsets[col];
         offsets[col] = 8; 
@@ -374,13 +396,16 @@
 
     function reveal() {
         clearInterval(timerInterval);
-        let count = 0;
-        let int = setInterval(() => {
+        const btns = document.querySelectorAll('.action-btn, .btn-reveal, .arrow-btn');
+        btns.forEach(b => b.disabled = true);
+        
+        let startTimeSpin = Date.now();
+        let spinInt = setInterval(() => {
             for(let i=0; i<wordLen; i++) { offsets[i]++; updateStrip(i, false); }
-            count++;
-            if(count > 30) {
-                clearInterval(int);
+            if(Date.now() - startTimeSpin > 1500) {
+                clearInterval(spinInt);
                 for(let i=0; i<wordLen; i++) { offsets[i] = 8; updateStrip(i, true); }
+                btns.forEach(b => b.disabled = false);
                 document.getElementById('msg-box').innerText = "ANSWER REVEALED!";
                 document.getElementById('secondary-btns').classList.add('hidden');
                 document.getElementById('btn-reveal-action').classList.add('hidden');
