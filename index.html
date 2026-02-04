@@ -42,10 +42,11 @@
             background: var(--white); width: 100%; max-width: 550px;
             border-radius: 30px; padding: 25px 25px 25px 60px; text-align: center;
             box-shadow: 0 15px 35px rgba(0,0,0,0.2); position: relative;
-            overflow: hidden; min-height: 480px;
+            overflow: hidden; min-height: 500px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
 
-        /* UPDATED: Industrial Power Bar */
+        /* Industrial Power Bar */
         .power-bar-container {
             position: absolute; top: 40px; bottom: 40px; left: 15px; width: 22px;
             background: #333; border: 3px solid var(--black); border-radius: 4px;
@@ -58,6 +59,7 @@
         }
         .power-fill.warning { background-color: var(--alert); }
 
+        .title-container { margin-bottom: 20px; }
         .title-letter {
             font-size: 2.8rem; font-weight: 900; color: var(--purple);
             text-shadow: 3px 3px 0 var(--yellow); display: inline-block;
@@ -105,7 +107,7 @@
             transform: translateY(2px); box-shadow: none !important; 
         }
 
-        .button-stack { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .button-stack { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; width: 100%; max-width: 300px; }
         .action-btn {
             padding: 15px 5px; border-radius: 15px; border: 3px solid var(--black);
             font-weight: 900; font-size: 1rem; cursor: pointer;
@@ -142,11 +144,13 @@
         <div id="pb-container" class="power-bar-container hidden"><div class="power-fill" id="fill-bar"></div></div>
 
         <div id="splash">
-            <div id="title-1"></div><div id="title-2"></div>
-            <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple); margin-top: 30px;" onclick="initGame()">PLAY NOW</button>
+            <div class="title-container">
+                <div id="title-1"></div><div id="title-2"></div>
+            </div>
+            <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple); margin-top: 10px; width: 200px;" onclick="initGame()">PLAY NOW</button>
         </div>
 
-        <div id="game-area" class="hidden">
+        <div id="game-area" class="hidden" style="width: 100%;">
             <div id="main-ui">
                 <div class="level-tracker">
                     <span class="lvl-step" id="lvl-step-1">1</span>
@@ -155,7 +159,7 @@
                 </div>
                 <div id="main-grid" class="game-grid"></div>
                 <div id="msg-box">Find the hidden words!</div>
-                <div class="button-stack">
+                <div class="button-stack" style="margin: 0 auto;">
                     <button id="btn-submit" class="action-btn btn-submit" onclick="checkSolution()">SUBMIT</button>
                     <div id="secondary-btns" style="display:flex; gap:8px">
                         <button class="action-btn btn-white" onclick="giveClue()">CLUE</button>
@@ -172,15 +176,15 @@
                     </a>
                     <div class="promo-box">Be a true champ and buy a copy of this <i>wheely</i> good book!</div>
                 </div>
-                <div class="button-stack">
+                <div class="button-stack" style="margin: 0 auto;">
                     <button class="action-btn btn-share" onclick="shareScore()">SHARE SCORE 📤</button>
                     <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple);" onclick="restartGame()">PLAY AGAIN</button>
                 </div>
             </div>
 
             <div id="game-over-ui" class="hidden">
-                <p class="victory-text" style="color:red">GAME OVER!<br>POWER DEPLETED</p>
-                <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple); margin-top:20px" onclick="restartGame()">TRY AGAIN</button>
+                <p class="victory-text" style="color:red; font-size: 2rem; margin-bottom: 30px;">GAME OVER!<br><span style="font-size: 1.2rem; color: var(--purple)">POWER DEPLETED</span></p>
+                <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple); width: 200px; margin: 0 auto;" onclick="restartGame()">TRY AGAIN</button>
             </div>
         </div>
     </div>
@@ -194,6 +198,7 @@
 
     let audioCtx, targets = [], wheels = [], offsets = [];
     let currentLevelIndex = 1, timeLeft, maxTime, timerInterval, soundEnabled = true;
+    let usedBonusWords = new Set();
 
     function toggleSound() {
         soundEnabled = !soundEnabled;
@@ -207,6 +212,7 @@
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
         const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+        
         if (type === 'click') { 
             osc.type = 'sine'; osc.frequency.setValueAtTime(160, audioCtx.currentTime);
             gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
@@ -218,6 +224,13 @@
                 g.gain.setValueAtTime(0.1, audioCtx.currentTime + (i * 0.08));
                 o.connect(g); g.connect(audioCtx.destination); o.start(audioCtx.currentTime + (i * 0.08)); o.stop(audioCtx.currentTime + (i * 0.08) + 0.2);
             });
+        } else if (type === 'gameover') {
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 1);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 1);
         }
     }
 
@@ -237,6 +250,7 @@
 
     function gameOver() {
         clearInterval(timerInterval);
+        playSound('gameover');
         document.getElementById('main-ui').classList.add('hidden');
         document.getElementById('game-over-ui').classList.remove('hidden');
     }
@@ -253,6 +267,7 @@
         const times = {1: 60000, 2: 120000, 3: 180000};
         maxTime = times[currentLevelIndex];
         timeLeft = maxTime;
+        usedBonusWords.clear();
         wordLen = currentLevelIndex + 2;
         const list = dict[wordLen];
         targets = [list[Math.floor(Math.random()*list.length)], ""];
@@ -319,13 +334,21 @@
                     document.getElementById('victory-ui').classList.remove('hidden');
                 }
             }, 1500);
-        } else if (dict[wordLen].includes(w1) || dict[wordLen].includes(w2)) {
-            // REWARD: Refill 15% for bonus words
-            timeLeft += (maxTime * 0.15);
-            msg.innerText = "BONUS WORD! +POWER"; msg.style.color = "var(--green)";
-            setTimeout(() => { msg.innerText = "Find the hidden words!"; msg.style.color = "var(--purple)"; }, 1500);
         } else {
-            msg.innerText = "NOT QUITE!"; msg.style.color = "red";
+            let foundBonus = false;
+            [w1, w2].forEach(w => {
+                if(dict[wordLen].includes(w) && !usedBonusWords.has(w)) {
+                    timeLeft += (maxTime * 0.15);
+                    usedBonusWords.add(w);
+                    foundBonus = true;
+                }
+            });
+
+            if (foundBonus) {
+                msg.innerText = "BONUS WORD! +POWER"; msg.style.color = "var(--green)";
+            } else {
+                msg.innerText = "NOT QUITE!"; msg.style.color = "red";
+            }
             setTimeout(() => { msg.innerText = "Find the hidden words!"; msg.style.color = "var(--purple)"; }, 1500);
         }
     }
