@@ -15,8 +15,8 @@
         :root {
             --purple: #3d1f6e; --orange: #f2631a; --yellow: #ffd447;
             --blue: #54baf7; --white: #ffffff; --black: #000000;
-            --green: #4CAF50; --alert: #FF9800; --grey: #e0e0e0; 
-            --light-grey: #f2f2f2;
+            --green: #5FAD56; --alert: #FF9800; --red: #AB2346;
+            --grey: #e0e0e0; --light-grey: #f2f2f2;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -40,26 +40,26 @@
 
         .game-card {
             background: var(--white); width: 100%; max-width: 550px;
-            border-radius: 30px; padding: 25px 25px 25px 60px; text-align: center;
+            border-radius: 30px; padding: 25px; text-align: center;
             box-shadow: 0 15px 35px rgba(0,0,0,0.2); position: relative;
-            overflow: hidden; min-height: 500px;
+            overflow: hidden; min-height: 520px;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
 
-        /* Industrial Power Bar */
         .power-bar-container {
             position: absolute; top: 40px; bottom: 40px; left: 15px; width: 22px;
             background: #333; border: 3px solid var(--black); border-radius: 4px;
-            overflow: hidden;
+            overflow: hidden; z-index: 10;
         }
         .power-fill {
             position: absolute; bottom: 0; width: 100%; height: 100%;
             background: var(--green);
-            transition: height 0.2s ease, background-color 0.3s;
+            transition: height 0.2s ease, background-color 0.4s;
         }
-        .power-fill.warning { background-color: var(--alert); }
 
-        .title-container { margin-bottom: 20px; }
+        #splash { width: 100%; display: flex; flex-direction: column; align-items: center; }
+        
+        .title-container { margin-bottom: 20px; width: 100%; text-align: center; }
         .title-letter {
             font-size: 2.8rem; font-weight: 900; color: var(--purple);
             text-shadow: 3px 3px 0 var(--yellow); display: inline-block;
@@ -71,7 +71,7 @@
         .lvl-step { color: #ccc; transition: 0.3s; }
         .lvl-step.active { color: var(--purple); transform: scale(1.2); text-decoration: underline; }
 
-        .game-grid { display: flex; justify-content: center; gap: 6px; margin: 20px 0; }
+        .game-grid { display: flex; justify-content: center; gap: 6px; margin: 20px 0; padding-left: 20px; }
         .column-group { display: flex; flex-direction: column; align-items: center; gap: 10px; }
         
         .wheel-window {
@@ -92,7 +92,7 @@
             background: white; border-bottom: 1px solid #ddd; color: var(--purple);
         }
 
-        .letter-cell.correct { background: #DDEDAA !important; animation: sparklePulse 0.4s ease infinite alternate; }
+        .letter-cell.correct { background: var(--green) !important; color: white !important; animation: sparklePulse 0.4s ease infinite alternate; }
         .letter-cell.clue-flash { background: var(--yellow) !important; color: var(--purple) !important; }
 
         @keyframes sparklePulse { from { box-shadow: inset 0 0 0px var(--yellow); } to { box-shadow: inset 0 0 15px var(--yellow); transform: scale(1.02); } }
@@ -107,7 +107,7 @@
             transform: translateY(2px); box-shadow: none !important; 
         }
 
-        .button-stack { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; width: 100%; max-width: 300px; }
+        .button-stack { display: flex; flex-direction: column; gap: 10px; margin: 0 auto; width: 100%; max-width: 300px; }
         .action-btn {
             padding: 15px 5px; border-radius: 15px; border: 3px solid var(--black);
             font-weight: 900; font-size: 1rem; cursor: pointer;
@@ -147,7 +147,7 @@
             <div class="title-container">
                 <div id="title-1"></div><div id="title-2"></div>
             </div>
-            <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple); margin-top: 10px; width: 200px;" onclick="initGame()">PLAY NOW</button>
+            <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple); width: 220px;" onclick="initGame()">PLAY NOW</button>
         </div>
 
         <div id="game-area" class="hidden" style="width: 100%;">
@@ -159,7 +159,7 @@
                 </div>
                 <div id="main-grid" class="game-grid"></div>
                 <div id="msg-box">Find the hidden words!</div>
-                <div class="button-stack" style="margin: 0 auto;">
+                <div class="button-stack">
                     <button id="btn-submit" class="action-btn btn-submit" onclick="checkSolution()">SUBMIT</button>
                     <div id="secondary-btns" style="display:flex; gap:8px">
                         <button class="action-btn btn-white" onclick="giveClue()">CLUE</button>
@@ -176,15 +176,15 @@
                     </a>
                     <div class="promo-box">Be a true champ and buy a copy of this <i>wheely</i> good book!</div>
                 </div>
-                <div class="button-stack" style="margin: 0 auto;">
+                <div class="button-stack">
                     <button class="action-btn btn-share" onclick="shareScore()">SHARE SCORE 📤</button>
                     <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple);" onclick="restartGame()">PLAY AGAIN</button>
                 </div>
             </div>
 
             <div id="game-over-ui" class="hidden">
-                <p class="victory-text" style="color:red; font-size: 2rem; margin-bottom: 30px;">GAME OVER!<br><span style="font-size: 1.2rem; color: var(--purple)">POWER DEPLETED</span></p>
-                <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple); width: 200px; margin: 0 auto;" onclick="restartGame()">TRY AGAIN</button>
+                <p class="victory-text" style="color:var(--red); font-size: 2rem; margin-bottom: 30px;">GAME OVER!<br><span style="font-size: 1.2rem; color: var(--purple)">POWER DEPLETED</span></p>
+                <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple); width: 200px;" onclick="restartGame()">TRY AGAIN</button>
             </div>
         </div>
     </div>
@@ -211,9 +211,9 @@
         if (!soundEnabled) return;
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
         
         if (type === 'click') { 
+            const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
             osc.type = 'sine'; osc.frequency.setValueAtTime(160, audioCtx.currentTime);
             gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
             osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.04);
@@ -224,9 +224,20 @@
                 g.gain.setValueAtTime(0.1, audioCtx.currentTime + (i * 0.08));
                 o.connect(g); g.connect(audioCtx.destination); o.start(audioCtx.currentTime + (i * 0.08)); o.stop(audioCtx.currentTime + (i * 0.08) + 0.2);
             });
+        } else if (type === 'cheer') {
+            // Haptic feedback
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+            
+            [523, 659, 783, 1046].forEach((f, i) => {
+                const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+                o.type = 'square'; o.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.1));
+                g.gain.setValueAtTime(0.1, audioCtx.currentTime + (i * 0.1));
+                g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + (i * 0.1) + 0.3);
+                o.connect(g); g.connect(audioCtx.destination); o.start(audioCtx.currentTime + (i * 0.1)); o.stop(audioCtx.currentTime + (i * 0.1) + 0.4);
+            });
         } else if (type === 'gameover') {
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+            osc.type = 'square'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 1);
             gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
             gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
@@ -238,7 +249,11 @@
         const pct = (timeLeft / maxTime) * 100;
         const bar = document.getElementById('fill-bar');
         bar.style.height = Math.min(100, pct) + "%";
-        bar.classList.toggle('warning', pct < 25);
+        
+        if (pct > 50) bar.style.backgroundColor = 'var(--green)';
+        else if (pct > 25) bar.style.backgroundColor = 'var(--alert)';
+        else bar.style.backgroundColor = 'var(--red)';
+
         document.getElementById('stat-time').innerText = formatTime(timeLeft);
         if (timeLeft <= 0) gameOver();
     }
@@ -322,6 +337,7 @@
         
         const msg = document.getElementById('msg-box');
         if(w1 === targets[0] && w2 === targets[1]) {
+            playSound('cheer');
             for(let i=0; i<wordLen; i++) {
                 const c = document.getElementById(`strip-${i}`).children;
                 c[offsets[i]].classList.add('correct'); c[offsets[i]+1].classList.add('correct');
@@ -347,7 +363,7 @@
             if (foundBonus) {
                 msg.innerText = "BONUS WORD! +POWER"; msg.style.color = "var(--green)";
             } else {
-                msg.innerText = "NOT QUITE!"; msg.style.color = "red";
+                msg.innerText = "NOT QUITE!"; msg.style.color = "var(--red)";
             }
             setTimeout(() => { msg.innerText = "Find the hidden words!"; msg.style.color = "var(--purple)"; }, 1500);
         }
@@ -359,7 +375,7 @@
         const old = offsets[col]; offsets[col] = 8; updateStrip(col, true);
         const cells = document.getElementById(`strip-${col}`).children;
         cells[8].classList.add('clue-flash'); cells[9].classList.add('clue-flash');
-        const m = document.getElementById('msg-box'); m.innerText = "POWER DRAINED!"; m.style.color = "red";
+        const m = document.getElementById('msg-box'); m.innerText = "POWER DRAINED!"; m.style.color = "var(--red)";
         setTimeout(() => {
             cells[8].classList.remove('clue-flash'); cells[9].classList.remove('clue-flash');
             offsets[col] = old; updateStrip(col, true);
