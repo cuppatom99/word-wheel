@@ -130,6 +130,8 @@
             padding: 12px; border-radius: 15px; border: 2px solid var(--purple);
             font-weight: 800; font-size: 0.95rem; line-height: 1.4;
         }
+
+        #share-status { font-size: 1rem; margin-top: 5px; color: var(--purple); font-weight: 900; }
     </style>
 </head>
 <body>
@@ -178,6 +180,7 @@
                 </div>
                 <div class="button-stack">
                     <button class="action-btn btn-share" onclick="shareScore()">SHARE SCORE 📤</button>
+                    <div id="share-status" class="hidden">Link Copied! Paste it anywhere!</div>
                     <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple);" onclick="restartGame()">PLAY AGAIN</button>
                 </div>
             </div>
@@ -211,9 +214,9 @@
         if (!soundEnabled) return;
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
         
         if (type === 'click') { 
-            const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
             osc.type = 'sine'; osc.frequency.setValueAtTime(160, audioCtx.currentTime);
             gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
             osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.04);
@@ -225,9 +228,7 @@
                 o.connect(g); g.connect(audioCtx.destination); o.start(audioCtx.currentTime + (i * 0.08)); o.stop(audioCtx.currentTime + (i * 0.08) + 0.2);
             });
         } else if (type === 'cheer') {
-            // Haptic feedback
             if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-            
             [523, 659, 783, 1046].forEach((f, i) => {
                 const o = audioCtx.createOscillator(), g = audioCtx.createGain();
                 o.type = 'square'; o.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.1));
@@ -346,6 +347,7 @@
                 if(currentLevelIndex < 3) { currentLevelIndex++; loadLevel(); } 
                 else { 
                     clearInterval(timerInterval);
+                    document.getElementById('pb-container').classList.add('hidden');
                     document.getElementById('main-ui').classList.add('hidden');
                     document.getElementById('victory-ui').classList.remove('hidden');
                 }
@@ -383,9 +385,19 @@
         }, 2000);
     }
 
+    // UPDATED: No more browser alerts, just sleek in-game messages
     function shareScore() {
         const text = `🎡 Word Wheel Deluxe 🎡\nI solved the wheel before my power ran out!\nCan you beat me? https://cuppatom99.github.io/word-wheel/`;
-        navigator.clipboard.writeText(text).then(() => { alert("Score copied to clipboard!"); });
+        
+        if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+            navigator.share({ title: 'Word Wheel Deluxe', text: text }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                const status = document.getElementById('share-status');
+                status.classList.remove('hidden');
+                setTimeout(() => status.classList.add('hidden'), 3500);
+            });
+        }
     }
 
     function shuffleWheels(anim) { for(let i=0; i<wordLen; i++) { offsets[i] = 8 + Math.floor(Math.random() * 7) + 1; updateStrip(i, anim); } }
