@@ -15,8 +15,8 @@
         :root {
             --purple: #3d1f6e; --orange: #f2631a; --yellow: #ffd447;
             --blue: #54baf7; --white: #ffffff; --black: #000000;
-            --green: #DDEDAA; --grey: #e0e0e0; --light-grey: #f2f2f2;
-            --neon-pink: #ff00ff;
+            --green: #4CAF50; --alert: #FF9800; --grey: #e0e0e0; 
+            --light-grey: #f2f2f2;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -38,27 +38,25 @@
             flex: 1; text-align: center;
         }
 
-        /* UPDATED: Wider card for Level 3 wheels */
         .game-card {
             background: var(--white); width: 100%; max-width: 550px;
-            border-radius: 30px; padding: 25px; text-align: center;
+            border-radius: 30px; padding: 25px 25px 25px 60px; text-align: center;
             box-shadow: 0 15px 35px rgba(0,0,0,0.2); position: relative;
-            overflow: hidden;
+            overflow: hidden; min-height: 480px;
         }
 
-        /* Power Bars */
+        /* UPDATED: Industrial Power Bar */
         .power-bar-container {
-            position: absolute; top: 80px; bottom: 80px; width: 12px;
-            background: #ddd; border: 2px solid var(--black); border-radius: 10px;
+            position: absolute; top: 40px; bottom: 40px; left: 15px; width: 22px;
+            background: #333; border: 3px solid var(--black); border-radius: 4px;
             overflow: hidden;
         }
-        .power-left { left: 10px; }
-        .power-right { right: 10px; }
         .power-fill {
             position: absolute; bottom: 0; width: 100%; height: 100%;
-            background: linear-gradient(to top, var(--blue), var(--neon-pink));
-            transition: height 0.1s linear;
+            background: var(--green);
+            transition: height 0.2s ease, background-color 0.3s;
         }
+        .power-fill.warning { background-color: var(--alert); }
 
         .title-letter {
             font-size: 2.8rem; font-weight: 900; color: var(--purple);
@@ -71,7 +69,7 @@
         .lvl-step { color: #ccc; transition: 0.3s; }
         .lvl-step.active { color: var(--purple); transform: scale(1.2); text-decoration: underline; }
 
-        .game-grid { display: flex; justify-content: center; gap: 6px; margin: 20px 0; padding: 0 15px; }
+        .game-grid { display: flex; justify-content: center; gap: 6px; margin: 20px 0; }
         .column-group { display: flex; flex-direction: column; align-items: center; gap: 10px; }
         
         .wheel-window {
@@ -90,10 +88,9 @@
             height: 55px; width: 100%; display: flex; align-items: center; 
             justify-content: center; font-size: 1.6rem; font-weight: 900;
             background: white; border-bottom: 1px solid #ddd; color: var(--purple);
-            transition: background 0.2s;
         }
 
-        .letter-cell.correct { background: var(--green) !important; animation: sparklePulse 0.4s ease infinite alternate; }
+        .letter-cell.correct { background: #DDEDAA !important; animation: sparklePulse 0.4s ease infinite alternate; }
         .letter-cell.clue-flash { background: var(--yellow) !important; color: var(--purple) !important; }
 
         @keyframes sparklePulse { from { box-shadow: inset 0 0 0px var(--yellow); } to { box-shadow: inset 0 0 15px var(--yellow); transform: scale(1.02); } }
@@ -105,7 +102,7 @@
         }
         .arrow-btn:active, .action-btn:active { 
             background: var(--yellow) !important; color: var(--purple) !important;
-            transform: translateY(3px); box-shadow: none !important; 
+            transform: translateY(2px); box-shadow: none !important; 
         }
 
         .button-stack { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
@@ -118,26 +115,19 @@
         .btn-submit { background: var(--blue); color: white; width: 100%; }
         .btn-share { background: var(--white); color: var(--purple); border: 3px solid var(--purple); }
         .btn-white { background: var(--white); color: var(--black); flex: 1; }
-        .btn-reveal {
-            background: var(--light-grey); color: #999; border: none;
-            box-shadow: none; font-size: 0.9rem; padding: 12px;
-            width: 100%; margin-top: 5px; border-radius: 10px; font-weight: bold; cursor: pointer;
-        }
 
-        #msg-box { min-height: 55px; margin: 10px 0; font-weight: 800; color: var(--purple); font-size: 0.9rem; display: flex; align-items: center; justify-content: center; }
+        #msg-box { min-height: 55px; margin: 10px 0; font-weight: 800; color: var(--purple); font-size: 0.95rem; display: flex; align-items: center; justify-content: center; }
         .hidden { display: none !important; }
         
         .victory-text { font-size: 1.3rem; line-height: 1.3; color: var(--purple); margin: 10px 0; font-weight: 900; }
         .book-promo-container { display: flex; flex-direction: column; align-items: center; gap: 15px; margin: 15px 0; }
-        .book-link img { width: 280px; max-width: 90%; border-radius: 10px; transition: transform 0.3s; }
+        .book-link img { width: 280px; max-width: 90%; border-radius: 10px; }
         
         .promo-box {
             background: var(--yellow); color: var(--purple);
             padding: 12px; border-radius: 15px; border: 2px solid var(--purple);
             font-weight: 800; font-size: 0.95rem; line-height: 1.4;
         }
-
-        #share-status { font-size: 0.9rem; margin-top: 5px; color: var(--purple); font-weight: 900; }
     </style>
 </head>
 <body>
@@ -149,8 +139,7 @@
     </div>
 
     <div class="game-card">
-        <div id="pb-left" class="power-bar-container power-left hidden"><div class="power-fill" id="fill-l"></div></div>
-        <div id="pb-right" class="power-bar-container power-right hidden"><div class="power-fill" id="fill-r"></div></div>
+        <div id="pb-container" class="power-bar-container hidden"><div class="power-fill" id="fill-bar"></div></div>
 
         <div id="splash">
             <div id="title-1"></div><div id="title-2"></div>
@@ -164,15 +153,14 @@
                     <span class="lvl-step" id="lvl-step-2">2</span>
                     <span class="lvl-step" id="lvl-step-3">3</span>
                 </div>
-                <div class="game-grid" id="main-grid"></div>
+                <div id="main-grid" class="game-grid"></div>
                 <div id="msg-box">Find the hidden words!</div>
                 <div class="button-stack">
-                    <button id="btn-main-action" class="action-btn btn-submit" onclick="checkSolution()">SUBMIT</button>
-                    <div id="secondary-btns" class="row-split" style="display:flex; gap:8px">
+                    <button id="btn-submit" class="action-btn btn-submit" onclick="checkSolution()">SUBMIT</button>
+                    <div id="secondary-btns" style="display:flex; gap:8px">
                         <button class="action-btn btn-white" onclick="giveClue()">CLUE</button>
                         <button class="action-btn btn-white" onclick="shuffleWheels(true)">SHUFFLE</button>
                     </div>
-                    <button id="btn-reveal-action" class="btn-reveal" onclick="reveal()">REVEAL ANSWER</button>
                 </div>
             </div>
 
@@ -182,21 +170,17 @@
                     <a href="https://www.waterstones.com/book/ham-ed-and-chips/tom-phipps/9780722356852" target="_blank" class="book-link">
                         <img src="https://github.com/cuppatom99/word-wheel/blob/main/HEC-click-to-get-you-copy-cover-image.png?raw=true" alt="Ham Ed and Chips Book Cover">
                     </a>
-                    <div class="promo-box">
-                        Be a true champ and buy a copy of this <i>wheely</i> good book!
-                    </div>
+                    <div class="promo-box">Be a true champ and buy a copy of this <i>wheely</i> good book!</div>
                 </div>
-                <p id="finish-time-display" style="font-weight: 900; color: var(--blue); margin-bottom: 10px;"></p>
                 <div class="button-stack">
-                    <button id="btn-share-score" class="action-btn btn-share" onclick="shareScore()">SHARE SCORE 📤</button>
-                    <div id="share-status" class="hidden">Score Copied!</div>
-                    <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple);" onclick="location.reload()">PLAY AGAIN</button>
+                    <button class="action-btn btn-share" onclick="shareScore()">SHARE SCORE 📤</button>
+                    <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple);" onclick="restartGame()">PLAY AGAIN</button>
                 </div>
             </div>
 
             <div id="game-over-ui" class="hidden">
                 <p class="victory-text" style="color:red">GAME OVER!<br>POWER DEPLETED</p>
-                <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple); margin-top:20px" onclick="location.reload()">TRY AGAIN</button>
+                <button class="action-btn btn-submit" style="background: var(--yellow); color: var(--purple); margin-top:20px" onclick="restartGame()">TRY AGAIN</button>
             </div>
         </div>
     </div>
@@ -209,21 +193,14 @@
     };
 
     let audioCtx, targets = [], wheels = [], offsets = [];
-    let currentLevelIndex = 1, finalElapsedMs = 0;
-    let soundEnabled = true, timerInterval, powerInterval;
-    let timeLeft, maxTime;
+    let currentLevelIndex = 1, timeLeft, maxTime, timerInterval, soundEnabled = true;
 
     function toggleSound() {
         soundEnabled = !soundEnabled;
         document.getElementById('sound-toggle').innerText = `SND: ${soundEnabled ? 'ON' : 'OFF'}`;
     }
 
-    function formatTime(ms) {
-        const totalSecs = Math.max(0, Math.floor(ms / 1000));
-        const mins = Math.floor(totalSecs / 60);
-        const secs = (totalSecs % 60).toString().padStart(2, '0');
-        return `${mins}:${secs}`;
-    }
+    function restartGame() { window.location.reload(); }
 
     function playSound(type) {
         if (!soundEnabled) return;
@@ -232,34 +209,30 @@
         const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
         if (type === 'click') { 
             osc.type = 'sine'; osc.frequency.setValueAtTime(160, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.04);
-            gain.gain.setValueAtTime(0.08, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
             osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.04);
         } else if (type === 'start') {
-            const notes = [261.6, 329.6, 392, 523.3]; 
-            notes.forEach((f, i) => {
-                const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.type = 'triangle';
-                o.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.08)); g.gain.setValueAtTime(0.1, audioCtx.currentTime + (i * 0.08));
-                g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (i * 0.08) + 0.2);
-                o.connect(g); g.connect(audioCtx.destination); o.start(audioCtx.currentTime + (i * 0.08)); o.stop(audioCtx.currentTime + (i * 0.08) + 0.22);
-            });
-        } else if (type === 'victory') {
-            const notes = [523, 523, 523, 659, 783, 1046];
-            notes.forEach((f, i) => {
-                const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.type = 'square';
-                o.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.15)); g.gain.setValueAtTime(0.1, audioCtx.currentTime + (i * 0.15));
-                g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + (i * 0.15) + 0.14);
-                o.connect(g); g.connect(audioCtx.destination); o.start(audioCtx.currentTime + (i * 0.15)); o.stop(audioCtx.currentTime + (i * 0.15) + 0.15);
+            [261, 329, 392, 523].forEach((f, i) => {
+                const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+                o.type = 'triangle'; o.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.08));
+                g.gain.setValueAtTime(0.1, audioCtx.currentTime + (i * 0.08));
+                o.connect(g); g.connect(audioCtx.destination); o.start(audioCtx.currentTime + (i * 0.08)); o.stop(audioCtx.currentTime + (i * 0.08) + 0.2);
             });
         }
     }
 
     function updatePowerBars() {
         const pct = (timeLeft / maxTime) * 100;
-        document.getElementById('fill-l').style.height = pct + "%";
-        document.getElementById('fill-r').style.height = pct + "%";
+        const bar = document.getElementById('fill-bar');
+        bar.style.height = Math.min(100, pct) + "%";
+        bar.classList.toggle('warning', pct < 25);
         document.getElementById('stat-time').innerText = formatTime(timeLeft);
         if (timeLeft <= 0) gameOver();
+    }
+
+    function formatTime(ms) {
+        const s = Math.max(0, Math.floor(ms / 1000));
+        return `${Math.floor(s/60)}:${(s%60).toString().padStart(2, '0')}`;
     }
 
     function gameOver() {
@@ -271,13 +244,9 @@
     function initGame() { 
         playSound('start'); 
         document.getElementById('splash').classList.add('hidden'); 
-        document.getElementById('pb-left').classList.remove('hidden');
-        document.getElementById('pb-right').classList.remove('hidden');
+        document.getElementById('pb-container').classList.remove('hidden');
         loadLevel(); 
-        timerInterval = setInterval(() => {
-            timeLeft -= 100;
-            updatePowerBars();
-        }, 100);
+        timerInterval = setInterval(() => { timeLeft -= 100; updatePowerBars(); }, 100);
     }
 
     function loadLevel() {
@@ -286,10 +255,9 @@
         timeLeft = maxTime;
         wordLen = currentLevelIndex + 2;
         const list = dict[wordLen];
-        let w1 = list[Math.floor(Math.random()*list.length)];
-        let w2 = list[Math.floor(Math.random()*list.length)];
-        while(w1 === w2) w2 = list[Math.floor(Math.random()*list.length)];
-        targets = [w1, w2];
+        targets = [list[Math.floor(Math.random()*list.length)], ""];
+        do { targets[1] = list[Math.floor(Math.random()*list.length)]; } while(targets[0] === targets[1]);
+        
         document.getElementById('stat-lvl').innerText = currentLevelIndex;
         document.querySelectorAll('.lvl-step').forEach(s => s.classList.remove('active'));
         document.getElementById(`lvl-step-${currentLevelIndex}`).classList.add('active');
@@ -298,54 +266,50 @@
     }
 
     function buildWheels() {
-        const grid = document.getElementById('main-grid');
-        grid.innerHTML = ""; wheels = []; offsets = new Array(wordLen).fill(8);
+        const grid = document.getElementById('main-grid'); grid.innerHTML = "";
+        wheels = []; offsets = new Array(wordLen).fill(8);
         for(let i=0; i<wordLen; i++) {
-            let charRow = [targets[0][i], targets[1][i]]; 
-            while(charRow.length < 8) {
+            let chars = [targets[0][i], targets[1][i]];
+            while(chars.length < 8) {
                 let r = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[Math.floor(Math.random()*26)];
-                if(!charRow.includes(r)) charRow.push(r);
+                if(!chars.includes(r)) chars.push(r);
             }
-            wheels[i] = [charRow[0], charRow[1], ...charRow.slice(2).sort(() => Math.random() - 0.5)];
+            wheels[i] = [chars[0], chars[1], ...chars.slice(2).sort(() => Math.random() - 0.5)];
             const group = document.createElement('div');
             group.className = 'column-group';
             group.innerHTML = `<div class="wheel-window"><div class="wheel-strip" id="strip-${i}"></div></div>
-                <div class="arrow-stack"><button class="arrow-btn" onclick="spin(${i}, 1)">▲</button>
-                <button class="arrow-btn" onclick="spin(${i}, -1)">▼</button></div>`;
+                <button class="arrow-btn" onclick="spin(${i}, 1)">▲</button>
+                <button class="arrow-btn" onclick="spin(${i}, -1)">▼</button>`;
             grid.appendChild(group);
             const strip = document.getElementById(`strip-${i}`);
-            [...wheels[i], ...wheels[i], ...wheels[i], ...wheels[i], ...wheels[i]].forEach(char => {
-                const cell = document.createElement('div'); cell.className = 'letter-cell'; cell.innerText = char; strip.appendChild(cell);
+            new Array(5).fill(wheels[i]).flat().forEach(c => {
+                const cell = document.createElement('div'); cell.className = 'letter-cell'; cell.innerText = c; strip.appendChild(cell);
             });
             updateStrip(i, false);
         }
-        shuffleWheels(false);
+        for(let i=0; i<wordLen; i++) { offsets[i] = 8 + Math.floor(Math.random() * 7) + 1; updateStrip(i, false); }
     }
 
-    function spin(i, dir) {
-        playSound('click'); offsets[i] += dir; updateStrip(i, true);
-        setTimeout(() => { if (offsets[i] < 8 || offsets[i] >= 16) { offsets[i] = ((offsets[i] % 8) + 8); updateStrip(i, false); } }, 200);
+    function spin(i, d) {
+        playSound('click'); offsets[i] += d; updateStrip(i, true);
+        setTimeout(() => { if (offsets[i] < 8 || offsets[i] >= 16) { offsets[i] = (offsets[i]%8)+8; updateStrip(i, false); } }, 200);
     }
 
-    function updateStrip(i, animate) {
-        const strip = document.getElementById(`strip-${i}`);
-        if(!strip) return;
-        strip.style.transition = animate ? "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)" : "none";
-        strip.style.transform = `translateY(-${offsets[i] * 55}px)`;
-    }
-
-    function shuffleWheels(withAnim = true) {
-        for(let i=0; i<wordLen; i++) { offsets[i] = 8 + Math.floor(Math.random() * 7) + 1; updateStrip(i, withAnim); }
+    function updateStrip(i, anim) {
+        const s = document.getElementById(`strip-${i}`); if(!s) return;
+        s.style.transition = anim ? "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)" : "none";
+        s.style.transform = `translateY(-${offsets[i] * 55}px)`;
     }
 
     function checkSolution() {
         let w1 = "", w2 = "";
-        for(let i=0; i<wordLen; i++) { w1 += wheels[i][offsets[i] % 8]; w2 += wheels[i][(offsets[i] + 1) % 8]; }
+        for(let i=0; i<wordLen; i++) { w1 += wheels[i][offsets[i]%8]; w2 += wheels[i][(offsets[i]+1)%8]; }
+        
+        const msg = document.getElementById('msg-box');
         if(w1 === targets[0] && w2 === targets[1]) {
-            playSound('cheer');
             for(let i=0; i<wordLen; i++) {
-                const cells = document.getElementById(`strip-${i}`).children;
-                cells[offsets[i]].classList.add('correct'); cells[offsets[i]+1].classList.add('correct');
+                const c = document.getElementById(`strip-${i}`).children;
+                c[offsets[i]].classList.add('correct'); c[offsets[i]+1].classList.add('correct');
             }
             setTimeout(() => {
                 if(currentLevelIndex < 3) { currentLevelIndex++; loadLevel(); } 
@@ -353,57 +317,43 @@
                     clearInterval(timerInterval);
                     document.getElementById('main-ui').classList.add('hidden');
                     document.getElementById('victory-ui').classList.remove('hidden');
-                    playSound('victory');
                 }
-            }, 1800);
+            }, 1500);
+        } else if (dict[wordLen].includes(w1) || dict[wordLen].includes(w2)) {
+            // REWARD: Refill 15% for bonus words
+            timeLeft += (maxTime * 0.15);
+            msg.innerText = "BONUS WORD! +POWER"; msg.style.color = "var(--green)";
+            setTimeout(() => { msg.innerText = "Find the hidden words!"; msg.style.color = "var(--purple)"; }, 1500);
         } else {
-            const msg = document.getElementById('msg-box'); msg.innerText = "NOT QUITE!"; msg.style.color = "red";
+            msg.innerText = "NOT QUITE!"; msg.style.color = "red";
             setTimeout(() => { msg.innerText = "Find the hidden words!"; msg.style.color = "var(--purple)"; }, 1500);
         }
     }
 
     function giveClue() {
-        // Penalty: Drain 15% of total time
         timeLeft -= (maxTime * 0.15);
         const col = Math.floor(Math.random() * wordLen);
-        const oldOffset = offsets[col];
-        offsets[col] = 8; updateStrip(col, true);
+        const old = offsets[col]; offsets[col] = 8; updateStrip(col, true);
         const cells = document.getElementById(`strip-${col}`).children;
         cells[8].classList.add('clue-flash'); cells[9].classList.add('clue-flash');
-        const msg = document.getElementById('msg-box'); msg.innerText = "POWER DRAINED!"; msg.style.color = "red";
+        const m = document.getElementById('msg-box'); m.innerText = "POWER DRAINED!"; m.style.color = "red";
         setTimeout(() => {
             cells[8].classList.remove('clue-flash'); cells[9].classList.remove('clue-flash');
-            offsets[col] = oldOffset; updateStrip(col, true);
-            msg.innerText = "Find the hidden words!"; msg.style.color = "var(--purple)";
+            offsets[col] = old; updateStrip(col, true);
+            m.innerText = "Find the hidden words!"; m.style.color = "var(--purple)";
         }, 2000);
     }
 
-    function reveal() {
-        clearInterval(timerInterval);
-        const btns = document.querySelectorAll('.action-btn, .btn-reveal, .arrow-btn');
-        btns.forEach(b => b.disabled = true);
-        setTimeout(() => {
-            for(let i=0; i<wordLen; i++) { offsets[i] = 8; updateStrip(i, true); }
-            document.getElementById('msg-box').innerText = "ANSWER REVEALED!";
-            document.getElementById('btn-main-action').innerText = "PLAY AGAIN";
-            document.getElementById('btn-main-action').onclick = () => location.reload();
-            btns.forEach(b => { if(b.id !== 'btn-main-action') b.classList.add('hidden'); b.disabled = false; });
-        }, 500);
-    }
-
     function shareScore() {
-        const shareText = `🎡 Word Wheel Deluxe 🎡\nI solved all levels before my power ran out!\nCan you beat me? https://cuppatom99.github.io/word-wheel/`;
-        navigator.clipboard.writeText(shareText).then(() => {
-            document.getElementById('share-status').classList.remove('hidden');
-        });
+        const text = `🎡 Word Wheel Deluxe 🎡\nI solved the wheel before my power ran out!\nCan you beat me? https://cuppatom99.github.io/word-wheel/`;
+        navigator.clipboard.writeText(text).then(() => { alert("Score copied to clipboard!"); });
     }
 
-    function initTitle() {
-        const c1 = document.getElementById('title-1'), c2 = document.getElementById('title-2');
-        [..."WORD"].forEach((l, i) => c1.innerHTML += `<span class="title-letter" style="animation-delay:${i*0.1}s">${l}</span>`);
-        [..."WHEEL"].forEach((l, i) => c2.innerHTML += `<span class="title-letter" style="animation-delay:${(i+4)*0.1}s">${l}</span>`);
-    }
-    initTitle();
+    function shuffleWheels(anim) { for(let i=0; i<wordLen; i++) { offsets[i] = 8 + Math.floor(Math.random() * 7) + 1; updateStrip(i, anim); } }
+
+    const c1 = document.getElementById('title-1'), c2 = document.getElementById('title-2');
+    [..."WORD"].forEach((l, i) => c1.innerHTML += `<span class="title-letter" style="animation-delay:${i*0.1}s">${l}</span>`);
+    [..."WHEEL"].forEach((l, i) => c2.innerHTML += `<span class="title-letter" style="animation-delay:${(i+4)*0.1}s">${l}</span>`);
 </script>
 </body>
 </html>
